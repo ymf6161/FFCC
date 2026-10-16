@@ -172,7 +172,7 @@ components:
 - Warm stone page, rounded tiles, a pill-shaped black navigation bar.
 - Large, readable figures; every button and icon has a word.
 
-**Preview:** three directions were compared on the same Home screen (Signal, Midnight, Blocks). Blocks was chosen. An earlier navy-on-paper "bank statement" proposal was rejected as too generic.
+**Preview:** three directions were compared on the same Home screen (Signal, Midnight, Blocks) in `docs/design-preview.html` (open it in a browser). Blocks was chosen. An earlier navy-on-paper "bank statement" proposal was rejected as too generic.
 
 **What stayed from the brief:** colour carries meaning, no gradients, no illustrations or images of people, no dark patterns, large tap targets, plain warm wording, tabular figures and consistent £ formatting.
 

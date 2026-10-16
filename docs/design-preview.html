@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FFCC Design System</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Sora:wght@500;600;700&family=Figtree:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
+<style>
+/* Layout: three phone screens side by side, one per direction, each a committed look; the page frame follows the viewer's theme. */
+:root{--bg:#F3F2EF;--fg:#16181C;--muted:#5C5F66;--line:#D8D6D0;--frame:"Figtree",ui-sans-serif,"Segoe UI",sans-serif}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#121317;--fg:#ECEBE7;--muted:#A3A6AD;--line:#2C2E35;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121317;--fg:#ECEBE7;--muted:#A3A6AD;--line:#2C2E35;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--frame);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 64px}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1{font-size:2rem;line-height:1.15;margin:0;font-weight:700;text-wrap:balance}
+.lede{color:var(--muted);max-width:68ch;margin:8px 0 0}
+.dirs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;align-items:start}
+@media (max-width:1100px){.dirs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:720px){.dirs{grid-template-columns:minmax(0,1fr)}}
+.dir{display:flex;flex-direction:column;gap:16px;min-width:0}
+.cap h2{font-size:1.375rem;margin:0;font-weight:700}
+.cap p{margin:6px 0 0;color:var(--muted);font-size:.9375rem}
+.cap ul{margin:10px 0 0;padding-left:18px;font-size:.9375rem;display:flex;flex-direction:column;gap:4px}
+.cap b{font-weight:600}
+.phone{border-radius:28px;overflow:hidden;border:1px solid var(--line);max-width:390px;width:100%}
+.n{font-variant-numeric:tabular-nums lining-nums;white-space:nowrap}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid currentColor;outline-offset:2px}
+svg{flex:none}
+
+/* ---------- A: Signal ---------- */
+.a{--a-bg:#F2F2EF;--a-ink:#0A0A0B;--a-muted:#5C5F66;--a-line:#0A0A0B;--a-soft:#D9D9D4;--a-blue:#2B3BF5;--a-in:#0E7A4B;--a-warn:#9A5B00;
+  background:var(--a-bg);color:var(--a-ink);font-family:"Schibsted Grotesk",ui-sans-serif,sans-serif}
+.a .top{display:flex;justify-content:space-between;align-items:center;padding:16px 20px}
+.a .mark{font-weight:800;letter-spacing:-.02em;font-size:1.25rem}
+.a .add{background:var(--a-ink);color:var(--a-bg);border:0;border-radius:0;min-height:48px;padding:0 18px;font-weight:600;display:flex;align-items:center;gap:8px}
+.a .hero{padding:12px 20px 24px;border-bottom:2px solid var(--a-line)}
+.a .lab{font-size:.875rem;font-weight:500;color:var(--a-muted)}
+.a .big{display:block;font-size:4rem;line-height:.95;font-weight:700;letter-spacing:-.045em;margin-top:10px}
+.a .big small{font-size:.42em;letter-spacing:-.02em;color:var(--a-muted);font-weight:600;vertical-align:.95em;margin-left:2px}
+.a .note{font-size:.9375rem;color:var(--a-muted);margin-top:10px}
+.a .qbar{display:flex;justify-content:space-between;align-items:center;width:100%;background:var(--a-blue);color:#fff;border:0;min-height:60px;padding:0 20px;font-weight:600;font-size:1.0625rem;text-align:left}
+.a .two{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--a-soft)}
+.a .two div{padding:16px 20px}
+.a .two div+div{border-left:1px solid var(--a-soft)}
+.a .two .v{display:block;font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin-top:2px}
+.a .in{color:var(--a-in)}
+.a .sec{display:flex;justify-content:space-between;align-items:baseline;padding:20px 20px 6px}
+.a .sec h3{margin:0;font-size:1.0625rem;font-weight:700}
+.a .sec a{color:var(--a-blue);font-weight:600;font-size:.9375rem;text-decoration:none}
+.a .row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;min-height:60px;padding:8px 20px;border-top:1px solid var(--a-soft)}
+.a .row .nm{font-weight:600}
+.a .row .mt{font-size:.875rem;color:var(--a-muted)}
+.a .row .am{font-weight:700;font-size:1.0625rem}
+.a .flag{color:var(--a-warn);font-weight:600}
+.a .nav{display:grid;grid-template-columns:repeat(5,1fr);border-top:2px solid var(--a-line);margin-top:8px}
+.a .nav button{background:none;border:0;min-height:60px;font-size:.875rem;font-weight:500;color:var(--a-muted)}
+.a .nav button[aria-current]{color:var(--a-ink);font-weight:700;box-shadow:inset 0 3px 0 var(--a-blue)}
+
+/* ---------- B: Midnight ---------- */
+.b{--b-bg:#0B1120;--b-s1:#131B2E;--b-s2:#1B2540;--b-fg:#EEF1F7;--b-muted:#8E99AE;--b-ice:#8DB4FF;--b-in:#4FD69C;--b-warn:#F2B64A;
+  background:var(--b-bg);color:var(--b-fg);font-family:"Figtree",ui-sans-serif,sans-serif;padding-bottom:12px}
+.b .top{display:flex;justify-content:space-between;align-items:center;padding:16px 18px}
+.b .hi{font-size:.9375rem;color:var(--b-muted)}
+.b .hi b{display:block;color:var(--b-fg);font-size:1.0625rem;font-weight:600}
+.b .add{background:var(--b-ice);color:var(--b-bg);border:0;border-radius:14px;min-height:48px;padding:0 18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.b .hero{margin:4px 12px 0;padding:20px 18px;background:var(--b-s1);border-radius:22px}
+.b .lab{font-size:.875rem;color:var(--b-muted);font-weight:500}
+.b .big{display:block;font-family:"Sora",sans-serif;font-size:2.875rem;font-weight:600;letter-spacing:-.03em;line-height:1.1;margin-top:6px}
+.b .big small{font-size:.5em;color:var(--b-muted)}
+.b .meter{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+.b .bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--b-s2)}
+.b .bar i{display:block;height:100%}
+.b .legend{display:flex;justify-content:space-between;font-size:.875rem;color:var(--b-muted)}
+.b .legend .n{color:var(--b-fg);font-weight:600;font-size:1rem}
+.b .q{margin:12px 12px 0;padding:16px 18px;border-radius:22px;background:var(--b-s1);display:flex;flex-direction:column;gap:12px}
+.b .q .tag{display:inline-flex;align-self:flex-start;align-items:center;gap:6px;color:var(--b-warn);font-weight:600;font-size:.875rem}
+.b .q .tag i{width:8px;height:8px;border-radius:50%;background:var(--b-warn)}
+.b .q p{margin:0;font-family:"Sora",sans-serif;font-weight:600;font-size:1.125rem;line-height:1.35}
+.b .q .ch{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.b .q .ch button{min-height:48px;border-radius:14px;border:0;font-weight:700}
+.b .yes{background:var(--b-ice);color:var(--b-bg)}
+.b .no{background:var(--b-s2);color:var(--b-fg)}
+.b .list{margin:12px 12px 0;border-radius:22px;background:var(--b-s1);padding:6px 0}
+.b .row{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:62px;padding:8px 16px}
+.b .ic{width:40px;height:40px;border-radius:12px;background:var(--b-s2);display:grid;place-items:center;font-weight:700;font-size:.9375rem;color:var(--b-muted)}
+.b .row .nm{font-weight:600}
+.b .row .mt{font-size:.875rem;color:var(--b-muted)}
+.b .row .am{font-weight:700;font-size:1.0625rem}
+.b .in{color:var(--b-in)}
+.b .nav{margin:12px 12px 0;display:grid;grid-template-columns:repeat(5,1fr);background:var(--b-s1);border-radius:22px;padding:4px}
+.b .nav button{background:none;border:0;min-height:56px;border-radius:18px;color:var(--b-muted);font-size:.8125rem;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.b .nav button[aria-current]{background:var(--b-s2);color:var(--b-fg)}
+
+/* ---------- C: Blocks ---------- */
+.c{--c-paper:#EDE8DF;--c-card:#FBF8F2;--c-ink:#1A1714;--c-muted:#625B52;--c-teal:#0E4A47;--c-cream:#F6F1E7;--c-cream-muted:#B9D3CF;--c-saffron:#F3B33D;--c-plum:#3A2148;--c-in:#1B6B43;--c-in-on-teal:#9FE3BE;
+  background:var(--c-paper);color:var(--c-ink);font-family:"Figtree",ui-sans-serif,sans-serif;padding:12px 12px 12px}
+.c .top{display:flex;justify-content:space-between;align-items:center;padding:6px 6px 14px}
+.c .mark{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:1.375rem;letter-spacing:-.02em}
+.c .add{background:var(--c-ink);color:var(--c-cream);border:0;border-radius:999px;min-height:48px;padding:0 18px;font-weight:700;display:flex;align-items:center;gap:8px}
+.c .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.c .tile{border-radius:20px;padding:18px}
+.c .hero{grid-column:1/-1;background:var(--c-teal);color:var(--c-cream);padding:22px 20px 20px}
+.c .hero .lab{color:var(--c-cream-muted);font-size:.9375rem;font-weight:500}
+.c .big{display:block;font-family:"Bricolage Grotesque",sans-serif;font-variation-settings:"opsz" 96;font-size:3.5rem;font-weight:700;line-height:1;letter-spacing:-.035em;margin-top:8px}
+.c .big small{font-size:.45em;color:var(--c-cream-muted);letter-spacing:-.01em}
+.c .hero .sub{display:flex;gap:18px;margin-top:16px;font-size:.9375rem;color:var(--c-cream-muted);flex-wrap:wrap}
+.c .hero .sub b{display:block;color:var(--c-cream);font-size:1.125rem;font-weight:700}
+.c .hero .sub .in{color:var(--c-in-on-teal)}
+.c .q{background:var(--c-saffron);color:var(--c-ink);display:flex;flex-direction:column;justify-content:space-between;gap:16px;min-height:150px;border:0;text-align:left}
+.c .q .k{font-family:"Bricolage Grotesque",sans-serif;font-size:2.75rem;font-weight:800;line-height:1}
+.c .q span{font-weight:600}
+.c .plan{background:var(--c-plum);color:var(--c-cream);display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-height:150px}
+.c .plan .lab{font-size:.9375rem;color:#D6C6DE}
+.c .plan .v{font-family:"Bricolage Grotesque",sans-serif;font-size:1.75rem;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.c .plan .mini{height:6px;border-radius:3px;background:rgba(246,241,231,.25);overflow:hidden}
+.c .plan .mini i{display:block;height:100%;width:64%;background:var(--c-cream)}
+.c .list{grid-column:1/-1;background:var(--c-card);padding:8px 0}
+.c .list h3{margin:6px 18px 4px;font-family:"Bricolage Grotesque",sans-serif;font-size:1.1875rem;font-weight:700}
+.c .row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;min-height:60px;padding:8px 18px;border-top:1px solid #E4DED3}
+.c .row:first-of-type{border-top:0}
+.c .row .nm{font-weight:600}
+.c .row .mt{font-size:.875rem;color:var(--c-muted)}
+.c .row .am{font-weight:700;font-size:1.0625rem}
+.c .in{color:var(--c-in)}
+.c .chip{display:inline-block;background:#FBE7BE;color:#6E4300;font-size:.8125rem;font-weight:700;padding:1px 8px;border-radius:999px;margin-left:6px}
+.c .nav{margin-top:10px;display:grid;grid-template-columns:repeat(5,1fr);background:var(--c-ink);border-radius:999px;padding:5px}
+.c .nav button{background:none;border:0;min-height:52px;border-radius:999px;color:#B8B1A6;font-size:.8125rem;font-weight:600}
+.c .nav button[aria-current]{background:var(--c-cream);color:var(--c-ink)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>FFCC: three directions</h1>
+    <p class="lede">The same Home screen in three very different looks. Every one keeps what older and less confident users need: large tabular figures, 48px buttons, words on every icon, colour only for meaning, AA contrast. Direction C, Blocks, was chosen and is specified in <code>docs/DESIGN.md</code>. A and B are kept for the record. All figures are made up.</p>
+  </header>
+
+  <div class="dirs">
+    <!-- A -->
+    <section class="dir" aria-label="Direction A: Signal">
+      <div class="phone a">
+        <div class="top"><span class="mark">FFCC</span><button class="add" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</button></div>
+        <div class="hero">
+          <span class="lab">Available cash</span>
+          <span class="big n">£4,218<small>.36</small></span>
+          <p class="note">After £6,500 set aside and £412.80 ma’aser owed</p>
+        </div>
+        <button class="qbar" type="button">3 questions waiting <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <div class="two">
+          <div><span class="lab">In this month</span><span class="v n in">+£5,240.00</span></div>
+          <div><span class="lab">Out this month</span><span class="v n">−£3,912.45</span></div>
+        </div>
+        <div class="sec"><h3>Recent</h3><a href="#a">All activity</a></div>
+        <div class="row"><div><div class="nm">Tesco</div><div class="mt">Groceries · Today</div></div><div class="am n">−£86.40</div></div>
+        <div class="row"><div><div class="nm">Salary</div><div class="mt">Income · Yesterday</div></div><div class="am n in">+£3,850.00</div></div>
+        <div class="row"><div><div class="nm">J. Cohen Ltd</div><div class="mt"><span class="flag">Not sure</span> · Household? · 14 Oct</div></div><div class="am n">−£85.00</div></div>
+        <div class="nav"><button type="button" aria-current="page">Home</button><button type="button">Activity</button><button type="button">Plan</button><button type="button">Reports</button><button type="button">Settings</button></div>
+      </div>
+      <div class="cap">
+        <h2>A. Signal</h2>
+        <p>Swiss typography meets a train departure board. Pure type, heavy rules, no boxes at all. One electric cobalt for the thing that needs you.</p>
+        <ul>
+          <li><b>Type:</b> Schibsted Grotesk, figures set huge and tight</li>
+          <li><b>Colour:</b> off-white, black ink, cobalt accent</li>
+          <li><b>Shape:</b> square corners, 2px black rules</li>
+          <li><b>Feels:</b> confident, editorial, unlike any bank app</li>
+          <li><b>Risk:</b> stark; needs disciplined spacing to stay calm</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- B -->
+    <section class="dir" aria-label="Direction B: Midnight">
+      <div class="phone b">
+        <div class="top"><div class="hi">Thursday 16 Oct<b>Our household</b></div><button class="add" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</button></div>
+        <div class="hero">
+          <span class="lab">Available cash</span>
+          <span class="big n">£4,218<small>.36</small></span>
+          <div class="meter">
+            <div class="bar" role="img" aria-label="October: £3,912.45 out of £5,240.00 in"><i style="width:75%;background:var(--b-ice)"></i></div>
+            <div class="legend"><span>Out <span class="n">£3,912</span></span><span>In <span class="n in">£5,240</span></span></div>
+          </div>
+        </div>
+        <div class="q">
+          <span class="tag"><i></i>1 of 3 questions</span>
+          <p>Was £100.00 to Tomchei Shabbos ma’aser?</p>
+          <div class="ch"><button class="yes" type="button">Yes</button><button class="no" type="button">No</button></div>
+        </div>
+        <div class="list">
+          <div class="row"><span class="ic">T</span><div><div class="nm">Tesco</div><div class="mt">Groceries · Today</div></div><div class="am n">−£86.40</div></div>
+          <div class="row"><span class="ic">S</span><div><div class="nm">Salary</div><div class="mt">Income · Yesterday</div></div><div class="am n in">+£3,850.00</div></div>
+          <div class="row"><span class="ic">J</span><div><div class="nm">J. Cohen Ltd</div><div class="mt" style="color:var(--b-warn)">Not sure · 14 Oct</div></div><div class="am n">−£85.00</div></div>
+        </div>
+        <div class="nav"><button type="button" aria-current="page">Home</button><button type="button">Activity</button><button type="button">Plan</button><button type="button">Reports</button><button type="button">Settings</button></div>
+      </div>
+      <div class="cap">
+        <h2>B. Midnight</h2>
+        <p>Dark-first and soft-edged, like a premium card app at night. Figures glow off the dark without any actual glow. Questions answered right on Home.</p>
+        <ul>
+          <li><b>Type:</b> Sora for figures and questions, Figtree for text</li>
+          <li><b>Colour:</b> deep navy-black, ice blue accent, mint for money in</li>
+          <li><b>Shape:</b> 22px rounded panels, floating nav</li>
+          <li><b>Feels:</b> sleek, modern, "app-like"</li>
+          <li><b>Risk:</b> dark screens are harder for some older eyes in daylight; needs a light mode too</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- C -->
+    <section class="dir" aria-label="Direction C: Blocks">
+      <div class="phone c">
+        <div class="top"><span class="mark">ffcc</span><button class="add" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add</button></div>
+        <div class="grid">
+          <div class="tile hero">
+            <span class="lab">Available cash</span>
+            <span class="big n">£4,218<small>.36</small></span>
+            <div class="sub"><span>In, Oct<b class="n in">+£5,240.00</b></span><span>Out, Oct<b class="n">−£3,912.45</b></span></div>
+          </div>
+          <button class="tile q" type="button"><span class="k n">3</span><span>questions waiting</span></button>
+          <div class="tile plan"><span class="lab">Set aside</span><span class="v n">£6,500</span><div class="mini"><i></i></div></div>
+          <div class="tile list">
+            <h3>Recent</h3>
+            <div class="row"><div><div class="nm">Tesco</div><div class="mt">Groceries · Today</div></div><div class="am n">−£86.40</div></div>
+            <div class="row"><div><div class="nm">Salary</div><div class="mt">Income · Yesterday</div></div><div class="am n in">+£3,850.00</div></div>
+            <div class="row"><div><div class="nm">J. Cohen Ltd<span class="chip">Not sure</span></div><div class="mt">Household? · 14 Oct</div></div><div class="am n">−£85.00</div></div>
+          </div>
+        </div>
+        <div class="nav"><button type="button" aria-current="page">Home</button><button type="button">Activity</button><button type="button">Plan</button><button type="button">Reports</button><button type="button">Settings</button></div>
+      </div>
+      <div class="cap">
+        <h2>C. Blocks (chosen)</h2>
+        <p>Bold colour fields, like a well-designed Scandinavian bank. Each kind of thing has its own colour: teal for cash, saffron for questions, plum for money set aside.</p>
+        <ul>
+          <li><b>Type:</b> Bricolage Grotesque for figures and headings, Figtree for text</li>
+          <li><b>Colour:</b> warm stone page, deep teal, saffron, plum</li>
+          <li><b>Shape:</b> 20px tiles, pill buttons and nav</li>
+          <li><b>Feels:</b> warm, distinctive, easy to find your way</li>
+          <li><b>Risk:</b> more colour to manage; tiles must stay few and meaningful</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>
+</body>
+</html>
