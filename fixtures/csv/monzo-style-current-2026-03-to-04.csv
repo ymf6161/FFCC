@@ -1,0 +1,26 @@
+Transaction ID,Date,Time,Type,Name,Category,Amount,Currency,Notes,Description
+tx_fake000014,01/03/2026,11:59:30,Faster payment,Joint account,transfers,500.00,GBP,,MONTHLY TOP UP
+tx_fake000015,03/03/2026,21:30:00,Card payment,Freshways,groceries,-29.13,GBP,,FRESHWAYS SUPERMARKET
+tx_fake000016,07/03/2026,17:13:04,Card payment,פיצה ירושלים,eating_out,-25.32,GBP,,PIZZA YERUSHALAYIM
+tx_fake000017,09/03/2026,11:15:33,Card payment,Streambox,entertainment,-10.99,GBP,,STREAMBOX SUBSCRIPTION
+tx_fake000018,10/03/2026,18:36:20,Card payment,פיצה ירושלים,eating_out,-36.72,GBP,,PIZZA YERUSHALAYIM
+tx_fake000019,14/03/2026,13:15:21,Card payment,פיצה ירושלים,eating_out,-46.11,GBP,,PIZZA YERUSHALAYIM
+tx_fake000020,17/03/2026,12:15:20,Card payment,Freshways,groceries,-18.91,GBP,,FRESHWAYS SUPERMARKET
+tx_fake000021,17/03/2026,14:45:39,Card payment,Coffee Corner,eating_out,-3.20,GBP,,COFFEE CORNER
+tx_fake000022,17/03/2026,15:07:56,Card payment,Coffee Corner,eating_out,-3.20,GBP,,COFFEE CORNER
+tx_fake000023,18/03/2026,08:51:06,Faster payment,צדקה לעניים,charity,-26.00,GBP,,TZEDAKAH APPEAL
+tx_fake000024,21/03/2026,17:52:54,Card payment,Little Steps,shopping,-27.03,GBP,,LITTLE STEPS KIDSWEAR
+tx_fake000025,24/03/2026,18:32:37,Card payment,Freshways,groceries,-8.46,GBP,,FRESHWAYS SUPERMARKET
+tx_fake000026,28/03/2026,15:26:23,Card payment,פיצה ירושלים,eating_out,-36.06,GBP,,PIZZA YERUSHALAYIM
+tx_fake000027,31/03/2026,14:47:46,Card payment,Little Steps,shopping,-47.68,GBP,,LITTLE STEPS KIDSWEAR
+tx_fake000028,01/04/2026,10:27:46,Faster payment,Joint account,transfers,500.00,GBP,,MONTHLY TOP UP
+tx_fake000029,04/04/2026,17:47:46,Card payment,פיצה ירושלים,eating_out,-23.24,GBP,,PIZZA YERUSHALAYIM
+tx_fake000030,07/04/2026,10:24:09,Card payment,Freshways,groceries,-26.73,GBP,,FRESHWAYS SUPERMARKET
+tx_fake000031,09/04/2026,08:32:09,Card payment,Streambox,entertainment,-10.99,GBP,,STREAMBOX SUBSCRIPTION
+tx_fake000032,11/04/2026,16:45:10,Card payment,Little Steps,shopping,-43.55,GBP,,LITTLE STEPS KIDSWEAR
+tx_fake000033,14/04/2026,20:33:50,Card payment,Freshways,groceries,-8.98,GBP,,FRESHWAYS SUPERMARKET
+tx_fake000034,18/04/2026,18:00:50,Card payment,Freshways,groceries,-42.91,GBP,,FRESHWAYS SUPERMARKET
+tx_fake000035,18/04/2026,17:15:52,Faster payment,צדקה לעניים,charity,-26.00,GBP,,TZEDAKAH APPEAL
+tx_fake000036,21/04/2026,17:35:22,Card payment,Little Steps,shopping,-25.68,GBP,,LITTLE STEPS KIDSWEAR
+tx_fake000037,25/04/2026,09:15:53,Card payment,Little Steps,shopping,-40.17,GBP,,LITTLE STEPS KIDSWEAR
+tx_fake000038,28/04/2026,16:59:55,Card payment,Little Steps,shopping,-10.22,GBP,,LITTLE STEPS KIDSWEAR

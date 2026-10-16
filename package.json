@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "check:screens": "bun run scripts/check-screens.ts"
+    "check:screens": "bun run scripts/check-screens.ts",
+    "fixtures": "bun run scripts/make-fixtures.ts"
   },
   "dependencies": {
     "@libsql/client": "0.18.0",

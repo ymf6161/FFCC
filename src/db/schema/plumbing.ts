@@ -1,4 +1,4 @@
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { createdAt, householdId, id, updatedAt } from "./_columns";
 import { actorTypes, importBatchStatuses, jobStatuses } from "./enums";
 import { accounts } from "./money";
@@ -29,7 +29,10 @@ export const bankProfiles = sqliteTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index("bank_profiles_household_idx").on(t.householdId)],
+  (t) => [
+    index("bank_profiles_household_idx").on(t.householdId),
+    uniqueIndex("bank_profiles_household_signature_unique").on(t.householdId, t.headerSignature),
+  ],
 );
 
 export const importBatches = sqliteTable(

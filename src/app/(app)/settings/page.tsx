@@ -1,30 +1,28 @@
+import Link from "next/link";
 import { signOut } from "@/auth/actions";
 import { requireSession } from "@/auth/session";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { getDb } from "@/db";
-import { getHousehold, listAccounts } from "@/db/queries";
-import type { accountTypes } from "@/db/schema";
+import { DriftLine } from "@/components/drift-line";
+import { getHousehold, listAccounts, listImportBatches } from "@/db/queries";
+import { accountDrift } from "@/import/drift";
+import { ACCOUNT_TYPE_LABELS } from "./import/shared";
 
 export const metadata = { title: "Settings" };
 
-const ACCOUNT_TYPE_LABELS: Record<(typeof accountTypes)[number], string> = {
-  current: "Current account",
-  savings: "Savings",
-  credit_card: "Credit card",
-  cash_wallet: "Cash wallet",
-  loan: "Loan",
-  mortgage: "Mortgage",
-  investment: "Investment",
-  other_asset: "Other asset",
-};
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 export default async function SettingsPage() {
   const { householdId } = await requireSession();
   const db = await getDb();
-  const [household, accounts] = await Promise.all([getHousehold(db, householdId), listAccounts(db, householdId)]);
+  const [household, accounts, batches] = await Promise.all([
+    getHousehold(db, householdId),
+    listAccounts(db, householdId),
+    listImportBatches(db, householdId),
+  ]);
+  const drifts = new Map(await Promise.all(accounts.map(async (a) => [a.id, await accountDrift(db, householdId, a.id)] as const)));
 
   return (
     <>
@@ -61,13 +59,31 @@ export default async function SettingsPage() {
                     {ACCOUNT_TYPE_LABELS[a.type]}
                     {a.institution ? ` · ${a.institution}` : ""}
                   </p>
+                  <p className="type-label">
+                    <DriftLine drift={drifts.get(a.id)!} />
+                  </p>
                 </div>
               </li>
             ))}
           </ul>
-          <p className="mt-3 type-label text-muted-foreground">
-            Importing statements and editing accounts arrive in later updates.
+          <p className="mt-3 type-label text-muted-foreground">Editing accounts arrives in a later update.</p>
+        </section>
+
+        <section className="rounded-lg bg-card p-5 lg:col-span-2 lg:p-6">
+          <h2 className="type-heading">Imports</h2>
+          <p className="mt-2 text-muted-foreground">
+            {batches.length === 0
+              ? "Bring in transactions from a CSV file exported from your bank."
+              : `${batches.length.toLocaleString("en-GB")} bank statement${batches.length === 1 ? "" : "s"} imported so far.`}
           </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button asChild>
+              <Link href="/settings/import">Import a CSV</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/settings/imports">See past imports</Link>
+            </Button>
+          </div>
         </section>
 
         <section className="rounded-lg bg-card p-5 lg:col-span-2 lg:p-6">

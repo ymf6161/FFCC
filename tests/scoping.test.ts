@@ -76,10 +76,55 @@ describe("household scoping", () => {
     expect(await queries.getMembership(db, "gone", userA)).toBeNull();
   });
 
+  it("listTransactions returns only the household's own rows, and filters by batch", async () => {
+    const pageA = await queries.listTransactions(db, a, { limit: 1000 });
+    const pageB = await queries.listTransactions(db, b, { limit: 1000 });
+    const total = await db.$count((await import("@/db/schema")).transactions);
+    expect(pageA.total + pageB.total).toBe(total);
+    expect(pageA.rows).toHaveLength(pageA.total);
+    const accountNamesA = new Set((await queries.listAccounts(db, a)).map((x) => x.id));
+    const idsA = new Set(pageA.rows.map((r) => r.id));
+    expect(pageB.rows.some((r) => idsA.has(r.id))).toBe(false);
+    expect(accountNamesA.size).toBe(4);
+    // A batch from household B gives nothing when asked for from household A.
+    const [batchB] = await queries.listImportBatches(db, b);
+    expect((await queries.listTransactions(db, a, { batchId: batchB!.id })).total).toBe(0);
+    expect((await queries.listTransactions(db, b, { batchId: batchB!.id })).total).toBeGreaterThan(0);
+  });
+
+  it("import batches and bank profiles are scoped", async () => {
+    const batchesA = await queries.listImportBatches(db, a);
+    const batchesB = await queries.listImportBatches(db, b);
+    expect(batchesA).toHaveLength(4);
+    expect(batchesB).toHaveLength(4);
+    expect(await queries.getImportBatch(db, a, batchesB[0]!.id)).toBeNull();
+    expect((await queries.getImportBatch(db, b, batchesB[0]!.id))?.batch.householdId).toBe(b);
+
+    const { bankProfiles } = await import("@/db/schema");
+    const now = nowIso();
+    await db.insert(bankProfiles).values({
+      id: newId(), householdId: a, name: "A's bank", headerSignature: "date|description|amount", createdAt: now, updatedAt: now,
+      mapping: { headerRow: 0, dateColumn: "Date", dateFormat: "dd/mm/yyyy", amountColumn: "Amount", signConvention: "money_in_positive", descriptionColumns: ["Description"] },
+    });
+    expect((await queries.listBankProfiles(db, a)).map((p) => p.name)).toEqual(["A's bank"]);
+    expect(await queries.listBankProfiles(db, b)).toEqual([]);
+  });
+
   it("covers every exported query", () => {
     // If a query is added to src/db/queries, add a scoping check above too.
     expect(Object.keys(queries).sort()).toEqual(
-      ["countOpenQuestions", "countTransactions", "getHousehold", "getMembership", "isSortingPaused", "listAccounts"].sort(),
+      [
+        "countOpenQuestions",
+        "countTransactions",
+        "getHousehold",
+        "getImportBatch",
+        "getMembership",
+        "isSortingPaused",
+        "listAccounts",
+        "listBankProfiles",
+        "listImportBatches",
+        "listTransactions",
+      ].sort(),
     );
   });
 });

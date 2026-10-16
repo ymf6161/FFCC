@@ -19,6 +19,17 @@ Open http://localhost:3000 and choose **Continue as the demo household**. The de
 
 `bun run setup` deletes and rebuilds the local database each time, so it gives the same result on any machine.
 
+## Try importing
+
+1. Sign in, then go to **Settings → Import a CSV** (or **Activity → Import a CSV**).
+2. Choose **A new account**, give it a name, and pick a file from `fixtures/csv/`, for example `nationwide-style-joint-2026-01-to-03.csv`.
+3. The layout is recognised; check the columns, then the rows, then import.
+4. The result page shows the counts and whether our balance matches the bank. **See these transactions** opens them in Activity.
+5. Import the overlapping `nationwide-style-joint-2026-02-to-04.csv` into the same account: only the April rows are new. Import either file again: nothing is added.
+6. **Undo this import** on the result page removes it again, after asking.
+
+`fixtures/csv/README.md` describes each sample file.
+
 ## Scripts
 
 | Script | What it does |
@@ -28,8 +39,9 @@ Open http://localhost:3000 and choose **Continue as the demo household**. The de
 | `bun run worker` | Run background jobs (Ctrl+C to stop) |
 | `bun run test` | Vitest: money, audit, jobs, schema, scoping, seed, sessions |
 | `bun run typecheck` / `bun run lint` | TypeScript and ESLint |
-| `bun run check:screens` | Build, start, sign in, and check all five areas at 320, 375 and 1280px; screenshots in `screenshots/` |
+| `bun run check:screens` | Build, start (on a temporary database), sign in, check every area at 320, 375 and 1280px, and run a CSV import end to end; screenshots in `screenshots/` |
 | `bun run db:generate` | Generate a migration after changing `src/db/schema/` |
+| `bun run fixtures` | Rewrite the sample CSVs in `fixtures/csv/` from `tests/fixtures/csv-sources.ts` |
 
 ## Layout
 
@@ -39,6 +51,7 @@ Open http://localhost:3000 and choose **Continue as the demo household**. The de
 - `src/jobs/`, `src/worker.ts` — the job queue and worker
 - `src/money/` — formatting, rounding and parsing of integer pence
 - `src/seed/` — the demo household generator
+- `src/import/` — CSV parsing, layout detection, dedupe, import, undo and balance checks
 - `src/app/` — the five areas: Home, Activity, Plan, Reports, Settings
 - `drizzle/` — migrations (committed)
 

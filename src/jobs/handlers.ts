@@ -4,9 +4,12 @@ import type { Job } from "./queue";
 export type JobHandler = (job: Job, db: Db) => Promise<void>;
 
 /**
- * Job types and their handlers. Phase 1 has only `noop`, which proves the
- * loop works end to end. Later phases add categorise, pair transfers, etc.
+ * Job types and their handlers. Phase 2 queues `categorise_batch` after an
+ * import and `ledger_rebuild` after an undo; the engine that does this work
+ * arrives in Phase 3, so for now they complete without changing anything.
  */
 export const handlers: Record<string, JobHandler> = {
   noop: async () => {},
+  categorise_batch: async () => {},
+  ledger_rebuild: async () => {},
 };

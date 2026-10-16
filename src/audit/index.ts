@@ -1,4 +1,4 @@
-import { and, eq, getTableName, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
+import { and, eq, getTableName, inArray, type InferInsertModel, type InferSelectModel } from "drizzle-orm";
 import type { SQLiteColumn, SQLiteTable } from "drizzle-orm/sqlite-core";
 import type { Executor, Tx } from "@/db";
 import { auditLog } from "@/db/schema";
@@ -152,6 +152,45 @@ export async function updateAudited<T extends AuditableTable>(
       ctx,
     });
     return after as InferSelectModel<T>;
+  });
+}
+
+/**
+ * Apply the same change to many rows of one household as a single batch, with
+ * one audit entry listing the ids (used by import undo). Rows outside the
+ * household are never touched.
+ */
+export async function updateBatchAudited<T extends HouseholdTable>(
+  ex: Executor,
+  table: T,
+  key: { householdId: string; ids: string[] },
+  patch: Partial<InferInsertModel<T>>,
+  ctx: AuditContext,
+): Promise<number> {
+  for (const field of ["id", "householdId"]) {
+    if (field in patch) throw new Error(`${getTableName(table)}.${field} cannot be changed by an update`);
+  }
+  if (key.ids.length === 0) return 0;
+  return atomically(ex, async (tx) => {
+    let changed = 0;
+    for (let i = 0; i < key.ids.length; i += INSERT_CHUNK) {
+      const ids = key.ids.slice(i, i + INSERT_CHUNK);
+      const rows = await tx
+        .update(table)
+        .set(patch as never)
+        .where(and(inArray(table.id, ids), eq(table.householdId, key.householdId)))
+        .returning({ id: table.id });
+      changed += rows.length;
+    }
+    await appendEntry(tx, {
+      householdId: key.householdId,
+      entity: getTableName(table),
+      entityId: ctx.importBatchId ?? key.ids[0]!,
+      before: null,
+      after: { ids: key.ids, rowCount: changed, patch },
+      ctx,
+    });
+    return changed;
   });
 }
 

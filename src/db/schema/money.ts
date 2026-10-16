@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { type AnySQLiteColumn, index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { createdAt, deletedAt, householdId, id, updatedAt } from "./_columns";
 import {
@@ -91,7 +92,11 @@ export const transactions = sqliteTable(
     index("transactions_transfer_group_idx").on(t.transferGroupId),
     index("transactions_refund_of_idx").on(t.refundOfId),
     index("transactions_import_batch_idx").on(t.importBatchId),
-    uniqueIndex("transactions_dedupe_unique").on(t.accountId, t.dedupeKey, t.dedupeOccurrence),
+    index("transactions_account_external_id_idx").on(t.accountId, t.externalId),
+    // Partial, so a soft-deleted (undone) row never blocks importing the same data again.
+    uniqueIndex("transactions_dedupe_unique")
+      .on(t.accountId, t.dedupeKey, t.dedupeOccurrence)
+      .where(sql`deleted_at IS NULL`),
   ],
 );
 
@@ -129,7 +134,12 @@ export const balanceCheckpoints = sqliteTable(
     createdAt: createdAt(),
     deletedAt: deletedAt(),
   },
-  (t) => [index("balance_checkpoints_account_date_idx").on(t.accountId, t.date)],
+  (t) => [
+    index("balance_checkpoints_account_date_idx").on(t.accountId, t.date),
+    uniqueIndex("balance_checkpoints_account_date_source_unique")
+      .on(t.accountId, t.date, t.source)
+      .where(sql`deleted_at IS NULL`),
+  ],
 );
 
 export const manualValuations = sqliteTable(

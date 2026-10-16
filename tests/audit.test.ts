@@ -173,7 +173,7 @@ describe("audit helper", () => {
   });
 
   it("offers no way to change or remove audit entries", () => {
-    expect(Object.keys(auditModule).sort()).toEqual(["insertAudited", "insertBatchAudited", "softDeleteAudited", "updateAudited"]);
+    expect(Object.keys(auditModule).sort()).toEqual(["insertAudited", "insertBatchAudited", "softDeleteAudited", "updateAudited", "updateBatchAudited"]);
     // Nothing in the app updates or deletes audit rows.
     const offenders = sourceFiles("src").filter((file) => /\.(update|delete)\(\s*auditLog\b/.test(readFileSync(file, "utf8")));
     expect(offenders).toEqual([]);
