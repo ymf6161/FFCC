@@ -89,15 +89,16 @@ export async function insertAudited<T extends AuditableTable>(
 const INSERT_CHUNK = 200;
 
 /**
- * Insert many rows as one batch with a single audit entry, as imports do
- * (BUILD_PLAN rule 9: "An import is logged once per batch, not per row").
- * `ctx.importBatchId` is required and is the entry's entity id.
+ * Insert many rows as one batch with a single audit entry, as imports and
+ * ledger rebuilds do (BUILD_PLAN rule 9: "An import is logged once per batch,
+ * not per row"). `ctx.batchId` is the entry's entity id; set `importBatchId`
+ * too when the batch is an import.
  */
 export async function insertBatchAudited<T extends HouseholdTable>(
   ex: Executor,
   table: T,
   rows: InferInsertModel<T>[],
-  ctx: AuditContext & { importBatchId: string; householdId: string },
+  ctx: AuditContext & { batchId: string; householdId: string },
 ): Promise<number> {
   const stray = rows.find((row) => (row as { householdId?: unknown }).householdId !== ctx.householdId);
   if (stray) {
@@ -110,7 +111,7 @@ export async function insertBatchAudited<T extends HouseholdTable>(
     await appendEntry(tx, {
       householdId: ctx.householdId,
       entity: getTableName(table),
-      entityId: ctx.importBatchId,
+      entityId: ctx.batchId,
       before: null,
       after: { rowCount: rows.length },
       ctx,

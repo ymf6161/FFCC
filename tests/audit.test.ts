@@ -126,7 +126,7 @@ describe("audit helper", () => {
       id: newId(), householdId: h.id, accountId: account.id, date: "2026-03-01", amount: -(i + 1), rawDescription: "SHOP",
       source: "csv" as const, dedupeKey: `2026-03-01|${-(i + 1)}|shop`, createdAt: now, updatedAt: now,
     }));
-    const count = await insertBatchAudited(db, transactions, rows, { actor: system, reason: "Imported", importBatchId: batchId, householdId: h.id });
+    const count = await insertBatchAudited(db, transactions, rows, { actor: system, reason: "Imported", batchId, importBatchId: batchId, householdId: h.id });
     expect(count).toBe(450);
     const entries = await entriesFor(batchId);
     expect(entries).toHaveLength(1);
@@ -147,7 +147,7 @@ describe("audit helper", () => {
     const auditBefore = (await db.select().from(auditLog)).length;
     await expect(
       insertBatchAudited(db, transactions, [row(a.id, accountA.id, 1), row(b.id, accountB.id, 2)], {
-        actor: system, reason: "Imported", importBatchId: batchId, householdId: a.id,
+        actor: system, reason: "Imported", batchId, importBatchId: batchId, householdId: a.id,
       }),
     ).rejects.toThrow(/must belong to household/);
     expect(await db.select().from(transactions).where(eq(transactions.householdId, b.id))).toHaveLength(0);

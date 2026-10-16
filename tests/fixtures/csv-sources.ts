@@ -41,6 +41,8 @@ function barclays(): SourceAccount {
     if (day === 3) rows.push({ date, amount: -5_000, description: "תרומה קופת צדקה", type: "Standing Order" });
     if (day === 6) rows.push({ date, amount: -rng.int(9_000, 16_000), description: "OCTANE ENERGY", type: "Direct Debit" });
     if (day === 28) rows.push({ date, amount: 295_000, description: "BRIGHTLINE LTD SALARY", type: "Counter Credit" });
+    // Pays off the Amex-style card each month: the other side is in the card file.
+    if (day === 22 && date <= "2026-03-31") rows.push({ date, amount: -40_000, description: "AMEX-STYLE CARD PAYMENT", type: "Payment" });
     if (weekday === 1 || weekday === 4) {
       const shop = rng.pick(shops);
       rows.push({ date, amount: -rng.int(1_850, 12_400), description: `${shop} ON ${date.slice(8)}/${date.slice(5, 7)}`, type: "Debit" });
@@ -60,6 +62,8 @@ function nationwide(): SourceAccount {
   const rows: SourceRow[] = [];
   eachDay("2026-01-01", "2026-04-30", (date, day, weekday) => {
     if (day === 2) rows.push({ date, amount: -138_500, description: "HALSTEAD BS MORTGAGE", type: "Direct debit" });
+    // Tops up the Monzo-style account each month: the other side is in the Monzo file.
+    if (day === 1 && date >= "2026-02-01") rows.push({ date, amount: -50_000, description: "TRANSFER TO MONZO", type: "Transfer" });
     if (day === 10) rows.push({ date, amount: -3_850, description: "CLEARFLOW WATER", type: "Direct debit" });
     if (day === 25) rows.push({ date, amount: 210_000, description: "ACME HOLDINGS PAYROLL", type: "Bank credit" });
     if (day === 20) rows.push({ date, amount: -10_000, description: "קרן ידידים", type: "Standing order" });
@@ -108,6 +112,8 @@ function amex(): SourceAccount {
   });
   rows.push({ date: "2026-02-08", amount: -320, description: "COFFEE CORNER" });
   rows.push({ date: "2026-02-08", amount: -320, description: "COFFEE CORNER" });
+  // A purchase, then a partial refund of it.
+  rows.push({ date: "2026-02-14", amount: -4_998, description: "HOMEWARE HOUSE LONDON" });
   rows.push({ date: "2026-03-02", amount: 2_499, description: "REFUND HOMEWARE HOUSE LONDON" });
   return { key: "amex", openingBalance: 0, rows: sortRows(rows) };
 }

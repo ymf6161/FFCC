@@ -30,6 +30,12 @@ Open http://localhost:3000 and choose **Continue as the demo household**. The de
 
 `fixtures/csv/README.md` describes each sample file.
 
+## The engine
+
+`bun run setup` sorts the demo household with the built-in mock AI, so Activity shows categories, transfers and refunds straight away. Imports queue sorting for the worker (`bun run worker`). No AI key is needed for anything; `AI_PROVIDER` stays unset.
+
+`bun run engine:report` runs the engine on a temporary database (the seed, then the sample CSVs) and prints what it did: rows sorted automatically, questions, transfer pairs, refunds and ma’aser owed.
+
 ## Scripts
 
 | Script | What it does |
@@ -37,10 +43,11 @@ Open http://localhost:3000 and choose **Continue as the demo household**. The de
 | `bun run setup` | Rebuild the local database and seed it |
 | `bun run dev` | Start the app in development |
 | `bun run worker` | Run background jobs (Ctrl+C to stop) |
-| `bun run test` | Vitest: money, audit, jobs, schema, scoping, seed, sessions |
+| `bun run test` | Vitest: every accounting rule (`tests/rules/`), import, engine, AI redaction, money, audit, jobs, scoping |
 | `bun run typecheck` / `bun run lint` | TypeScript and ESLint |
 | `bun run check:screens` | Build, start (on a temporary database), sign in, check every area at 320, 375 and 1280px, and run a CSV import end to end; screenshots in `screenshots/` |
 | `bun run db:generate` | Generate a migration after changing `src/db/schema/` |
+| `bun run engine:report` | Run the engine on the seed and the sample CSVs and print what it did |
 | `bun run fixtures` | Rewrite the sample CSVs in `fixtures/csv/` from `tests/fixtures/csv-sources.ts` |
 
 ## Layout
@@ -52,6 +59,8 @@ Open http://localhost:3000 and choose **Continue as the demo household**. The de
 - `src/money/` — formatting, rounding and parsing of integer pence
 - `src/seed/` — the demo household generator
 - `src/import/` — CSV parsing, layout detection, dedupe, import, undo and balance checks
+- `src/engine/` — the bookkeeper: merchants, rules, transfers, categorising, refunds, splits, cash sweep, ledgers, totals
+- `src/ai/` — the only way to the AI: redaction, response checks, and the mock provider
 - `src/app/` — the five areas: Home, Activity, Plan, Reports, Settings
 - `drizzle/` — migrations (committed)
 

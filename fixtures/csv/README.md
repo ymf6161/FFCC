@@ -16,6 +16,8 @@ The layouts are modelled on how these UK banks describe their CSV exports. They 
 
 Every file has some Hebrew descriptions.
 
+The files also link up, so the engine can find transfers between them: the Barclays-style account pays the Amex-style card on the 22nd of January to March, and the Nationwide-style account tops up the Monzo-style account on the 1st of February to April. The Amex-style file has a purchase on 14 Feb and a partial refund of it on 2 Mar.
+
 Import the files for each layout into their own account. Importing the second file of a pair adds only the rows the first did not have; importing any file twice adds nothing.
 
 The files are generated from `tests/fixtures/csv-sources.ts` with `bun run fixtures`; a test checks they still match.

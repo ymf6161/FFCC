@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "check:screens": "bun run scripts/check-screens.ts",
-    "fixtures": "bun run scripts/make-fixtures.ts"
+    "fixtures": "bun run scripts/make-fixtures.ts",
+    "engine:report": "bun run scripts/engine-report.ts"
   },
   "dependencies": {
     "@libsql/client": "0.18.0",

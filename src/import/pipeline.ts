@@ -168,7 +168,7 @@ export async function runImport(ex: Executor, input: ImportInput): Promise<Impor
           createdAt: now,
           updatedAt: now,
         })),
-        { ...ctx("Imported transactions", batch.id), importBatchId: batch.id, householdId },
+        { ...ctx("Imported transactions", batch.id), batchId: batch.id, importBatchId: batch.id, householdId },
       );
     }
 
@@ -222,7 +222,7 @@ export async function runImport(ex: Executor, input: ImportInput): Promise<Impor
             importBatchId: batch.id,
             createdAt: now,
           })),
-          { ...ctx("Stored bank balances from the file", batch.id), importBatchId: batch.id, householdId },
+          { ...ctx("Stored bank balances from the file", batch.id), batchId: batch.id, importBatchId: batch.id, householdId },
         );
       }
 

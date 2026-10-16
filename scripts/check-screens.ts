@@ -20,6 +20,8 @@ import { SESSION_COOKIE, signSession } from "@/auth/token";
 import { createDb } from "@/db";
 import { runMigrations } from "@/db/migrate";
 import { ukDate } from "@/lib/time";
+import { MockAiProvider } from "@/ai";
+import { runEngine } from "@/engine/run";
 import { seedDatabase } from "@/seed";
 
 const PORT = Number(process.env.CHECK_PORT ?? 3100);
@@ -150,7 +152,8 @@ const databaseUrl = `file:${path.join(dbDir, "screens.db")}`;
 {
   const db = await createDb(databaseUrl);
   await runMigrations(db);
-  await seedDatabase(db, { endDate: ukDate() });
+  const seeded = await seedDatabase(db, { endDate: ukDate() });
+  await runEngine(db, seeded.householdId, { today: ukDate(), provider: new MockAiProvider() });
   db.$client.close();
 }
 
@@ -225,6 +228,21 @@ try {
         await page.setViewportSize({ width: vp.width, height: vp.height });
       }
     }
+
+    // Activity shows each row's category and status, and marks transfers and refunds.
+    await page.goto(`${BASE}/activity?show=500`);
+    const visible = (text: string) => page.getByText(text, { exact: true }).filter({ visible: true }).first().isVisible();
+    check(await visible("Auto"), "Activity: status chips show (Auto)");
+    check(await visible("Card repayment"), "Activity: card repayments are marked");
+    check(await visible("Transfer"), "Activity: transfers are marked");
+    check(await visible("Refund"), "Activity: refunds are marked");
+    check(await visible("Refunded"), "Activity: refunded purchases are marked");
+    check(await page.getByText(/^Groceries( ·|$)/).filter({ visible: true }).first().isVisible(), "Activity: categories show");
+    if (vp.name === "desktop") {
+      check(await page.getByRole("columnheader", { name: "Category" }).isVisible(), "Activity: the table has a Category column");
+      check(await page.getByRole("columnheader", { name: "Status" }).isVisible(), "Activity: the table has a Status column");
+    }
+    if (vp.screenshot) await page.screenshot({ path: `screenshots/activity-sorted-${vp.name}.png` });
 
     // Navigation works by clicking, not just by URL.
     await page.goto(`${BASE}/`);

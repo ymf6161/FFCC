@@ -3,6 +3,7 @@ import { requireSession } from "@/auth/session";
 import { EmptyState } from "@/components/empty-state";
 import { Money } from "@/components/money";
 import { PageHeader } from "@/components/page-header";
+import { KindChips, moneyKindFor, StatusChip } from "@/components/transaction-chips";
 import { Button } from "@/components/ui/button";
 import { getDb } from "@/db";
 import { getImportBatch, listTransactions } from "@/db/queries";
@@ -51,29 +52,35 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
       ) : (
         <section className="rounded-lg bg-card p-2 lg:p-3">
           {/* Phone: list rows. */}
-          <ul className="divide-y divide-divider md:hidden">
+          <ul className="divide-y divide-divider lg:hidden">
             {rows.map((t) => (
               <li key={t.id} className="flex min-h-[60px] items-center justify-between gap-3 px-3 py-2">
                 <div className="min-w-0">
-                  <p className="truncate font-semibold" dir="auto">
-                    {t.description}
+                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="truncate font-semibold" dir="auto">
+                      {t.description}
+                    </span>
+                    <StatusChip status={t.status} />
+                    <KindChips row={t} />
                   </p>
                   <p className="type-label truncate text-muted-foreground">
-                    {formatDate(t.date, today)} · {t.accountName}
+                    {t.categoryName ?? "Not sorted yet"} · {t.accountName} · {formatDate(t.date, today)}
                   </p>
                 </div>
-                <Money pence={t.amount} kind={t.amount > 0 ? "in" : "out"} className="shrink-0" />
+                <Money pence={t.amount} kind={moneyKindFor(t)} className="shrink-0" />
               </li>
             ))}
           </ul>
           {/* Wider screens: a table. */}
-          <table className="hidden w-full text-left md:table">
+          <table className="hidden w-full text-left lg:table">
             <caption className="sr-only">Transactions, newest first</caption>
             <thead>
               <tr className="type-label border-b border-divider text-muted-foreground">
                 <th className="px-3 py-2 font-medium">Date</th>
                 <th className="px-3 py-2 font-medium">Account</th>
                 <th className="px-3 py-2 font-medium">Description</th>
+                <th className="px-3 py-2 font-medium">Category</th>
+                <th className="px-3 py-2 font-medium">Status</th>
                 <th className="px-3 py-2 text-right font-medium">Amount</th>
               </tr>
             </thead>
@@ -82,11 +89,18 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                 <tr key={t.id} className="h-[60px]">
                   <td className="whitespace-nowrap px-3 tabular-nums">{formatDate(t.date, today)}</td>
                   <td className="whitespace-nowrap px-3 text-muted-foreground">{t.accountName}</td>
-                  <td className="px-3" dir="auto">
-                    {t.description}
+                  <td className="px-3 py-2" dir="auto">
+                    <span>{t.description}</span>
+                    <span className="ml-2 align-middle">
+                      <KindChips row={t} />
+                    </span>
+                  </td>
+                  <td className="px-3 text-muted-foreground">{t.categoryName ?? "Not sorted yet"}</td>
+                  <td className="whitespace-nowrap px-3">
+                    <StatusChip status={t.status} />
                   </td>
                   <td className="whitespace-nowrap px-3 text-right">
-                    <Money pence={t.amount} kind={t.amount > 0 ? "in" : "out"} />
+                    <Money pence={t.amount} kind={moneyKindFor(t)} />
                   </td>
                 </tr>
               ))}

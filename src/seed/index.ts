@@ -128,7 +128,7 @@ export async function seedDatabase(
         },
         ctx("Seed import batch"),
       );
-      const batchCtx = { ...ctx("Seeded demo transactions"), importBatchId: batch.id, householdId };
+      const batchCtx = { ...ctx("Seeded demo transactions"), batchId: batch.id, importBatchId: batch.id, householdId };
 
       transactionCount += await insertBatchAudited(
         tx,
@@ -166,7 +166,7 @@ export async function seedDatabase(
             importBatchId: batch.id,
             createdAt: now,
           })),
-        { ...ctx("Seeded statement balances"), importBatchId: batch.id, householdId },
+        { ...ctx("Seeded statement balances"), batchId: batch.id, importBatchId: batch.id, householdId },
       );
     }
 
