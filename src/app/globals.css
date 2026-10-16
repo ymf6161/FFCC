@@ -1,0 +1,231 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * FFCC design tokens. Source of truth: docs/DESIGN.md ("Blocks").
+ * Light under :root, dark under .dark. Never hard-code a colour in a component.
+ */
+:root {
+  /* DESIGN.md palette */
+  --paper: #ede8df;
+  --card-token: #fbf8f2;
+  --sunken: #e4ded3;
+  --divider: #e4ded3;
+  --border-strong: #8a8278;
+  --text: #1a1714;
+  --text-muted: #625b52;
+  --ink: #1a1714;
+  --on-ink: #f6f1e7;
+  --on-ink-muted: #b8b1a6;
+
+  --teal: #0e4a47;
+  --on-teal: #f6f1e7;
+  --on-teal-muted: #b9d3cf;
+  --teal-text: #0e4a47;
+  --saffron: #f3b33d;
+  --on-saffron: #1a1714;
+  --plum: #3a2148;
+  --on-plum: #f6f1e7;
+  --on-plum-muted: #d6c6de;
+
+  --money-in: #1b6b43;
+  --money-in-on-field: #9fe3be;
+  --success-tint: #dcefe2;
+  --warning: #8f5600;
+  --warning-strong: #6e4300;
+  --warning-tint: #fbe7be;
+  --error: #b3261e;
+  --error-tint: #f9e1de;
+  --on-error: #f6f1e7;
+
+  /* shadcn mapping (DESIGN.md "shadcn/ui mapping") */
+  --background: var(--paper);
+  --foreground: var(--text);
+  --card: var(--card-token);
+  --card-foreground: var(--text);
+  --popover: var(--card-token);
+  --popover-foreground: var(--text);
+  --primary: var(--ink);
+  --primary-foreground: var(--on-ink);
+  --secondary: var(--card-token);
+  --secondary-foreground: var(--text);
+  --muted: var(--sunken);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--sunken);
+  --accent-foreground: var(--text);
+  --destructive: var(--error);
+  --border: var(--divider);
+  --input: var(--border-strong);
+  --ring: var(--teal);
+  --chart-1: var(--teal);
+  --chart-2: var(--text-muted);
+  --chart-3: var(--plum);
+
+  --radius: 1.25rem;
+  --shadow-pop: 0 8px 24px rgb(26 23 20 / 0.14);
+}
+
+.dark {
+  --paper: #151311;
+  --card-token: #1f1c19;
+  --sunken: #2a2622;
+  --divider: #2e2a26;
+  --border-strong: #6e675e;
+  --text: #f1ece3;
+  --text-muted: #a9a196;
+  --ink: #f1ece3;
+  --on-ink: #151311;
+  --on-ink-muted: #625b52;
+  --teal-text: #7fc8c1;
+  --money-in: #7dd3a2;
+  --warning: #f3b33d;
+  --error: #f28b82;
+
+  --ring: var(--teal-text);
+  --chart-1: var(--teal-text);
+  --chart-3: var(--on-plum-muted);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+
+  --color-paper: var(--paper);
+  --color-sunken: var(--sunken);
+  --color-divider: var(--divider);
+  --color-border-strong: var(--border-strong);
+  --color-ink: var(--ink);
+  --color-on-ink: var(--on-ink);
+  --color-on-ink-muted: var(--on-ink-muted);
+  --color-teal: var(--teal);
+  --color-on-teal: var(--on-teal);
+  --color-on-teal-muted: var(--on-teal-muted);
+  --color-teal-text: var(--teal-text);
+  --color-saffron: var(--saffron);
+  --color-on-saffron: var(--on-saffron);
+  --color-plum: var(--plum);
+  --color-on-plum: var(--on-plum);
+  --color-on-plum-muted: var(--on-plum-muted);
+  --color-money-in: var(--money-in);
+  --color-money-in-on-field: var(--money-in-on-field);
+  --color-success-tint: var(--success-tint);
+  --color-warning: var(--warning);
+  --color-warning-strong: var(--warning-strong);
+  --color-warning-tint: var(--warning-tint);
+  --color-error: var(--error);
+  --color-error-tint: var(--error-tint);
+  --color-on-error: var(--on-error);
+
+  --font-sans: var(--font-figtree), var(--font-hebrew), ui-sans-serif, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-hebrew), ui-sans-serif, "Segoe UI", sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 20px;
+
+  --shadow-pop: var(--shadow-pop);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* Type scale from DESIGN.md */
+  .type-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 2rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-variation-settings: "opsz" 96;
+  }
+  .type-heading {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.375rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .type-figure {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.75rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .type-figure-hero {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(3rem, 2.4rem + 2.4vw, 4rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+    font-variation-settings: "opsz" 96;
+  }
+  .type-subheading {
+    font-weight: 700;
+    font-size: 1.125rem;
+    line-height: 1.3;
+  }
+  .type-label {
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  .type-amount {
+    font-weight: 700;
+    font-size: 1.0625rem;
+    font-variant-numeric: tabular-nums;
+  }
+}

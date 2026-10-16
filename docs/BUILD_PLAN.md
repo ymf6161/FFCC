@@ -221,6 +221,17 @@ Every confirmation creates a rule.
 
 ---
 
+### Phase 1 decisions (16 Oct 2026, while building Phase 1)
+
+- **SQLite driver:** `@libsql/client` with `drizzle-orm/libsql`. One driver for the Next server, the worker, scripts and tests; prebuilt binaries from npm (no native build on a new machine); async like Postgres. Busy timeout (5s) set on every pooled connection through the client's `timeout` option; WAL set once on the file. Transactions use `BEGIN IMMEDIATE`, so concurrent writers wait instead of failing.
+- **Seed stored raw:** the seed writes transactions as a bank import would leave them: booked, uncategorised, `unconfirmed`, no transfer or refund links. Sorting them is Phase 3. The generator (`src/seed/generate.ts`) keeps each row's intended category, transfer partner and refund target in memory for Phase 3's tests; they are never stored.
+- **Seed transactions use import batches:** one `import_batches` row per account (`seed-<account>.csv`), audited once per batch, as a real import will be.
+- **`jobs.household_id` is nullable** for global jobs (e.g. a scheduler tick); household jobs always carry it. Job state changes are plumbing and are not audit-logged; the work a job does is audited by the code it calls.
+- **Audit helper API** (`src/audit`): `insertAudited`, `insertBatchAudited`, `updateAudited` (household-scoped), `softDeleteAudited`. Each writes the change and its entry in one transaction. Nothing updates or deletes `audit_log`; a test checks this.
+- **Dev login:** `/login` has one button, "Continue as the demo household". It sets an HMAC-signed, httpOnly cookie with the user and household ids (30 days). Enabled when `NODE_ENV` is not production or `FFCC_DEV_LOGIN=1`. Production refuses to start a session without `SESSION_SECRET`. `src/proxy.ts` (Next 16's middleware) sends anyone without a valid session to `/login`.
+- **Money helpers ahead of Phase 3:** `formatMoney`, `applyRate` (the one rounding helper: half away from zero, integer maths) and `parseAmountToPence` exist with tests, so later phases share them.
+- **Screen check:** `bun run check:screens` proves the Phase 1 "done when" for screens at 320, 375 and 1280px.
+
 ## 9. Build phases
 
 Each phase ends with tests passing, /review, /qa (for anything with a screen), /design-review (for screens) and /ship. Acceptance checks are what "done" means.
@@ -240,6 +251,7 @@ Each phase ends with tests passing, /review, /qa (for anything with a screen), /
 - App shell with the five navigation areas (empty states), dev login.
 - Audit log helper used by every write.
 - Done when: `bun run setup` builds the DB and seed on any machine; all five areas load on phone and desktop widths.
+- Status: **built 16 Oct 2026** (decisions above).
 
 **Phase 2 — CSV import**
 - Import wizard: upload, column mapping, preview first 20 rows, sign convention, confirm.
