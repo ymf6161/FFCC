@@ -41,3 +41,22 @@ FFCC (Family Financial Control Centre) is a family finance app that keeps the bo
 - One feature per session, following the current phase in the build plan.
 - After building: /review, /qa (screens), /design-review (screens), then /ship.
 - Use plain British English in the UI. Calm, clear, modest wording.
+
+## gstack
+gstack is vendored in `.claude/skills/gstack` and provides these skills (invoke as `/name`):
+
+- **Planning:** `/office-hours`, `/spec`, `/autoplan`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/plan-devex-review`, `/plan-tune`
+- **Design:** `/design-consultation`, `/design-shotgun`, `/design-html`, `/design-review`, `/diagram`
+- **Review and quality:** `/review`, `/qa`, `/qa-only`, `/investigate`, `/cso`, `/health`, `/test-audit`, `/deslop-shared-libs`, `/devex-review`, `/benchmark`, `/benchmark-models`, `/eval-plan`, `/codex`
+- **Shipping:** `/ship`, `/land-and-deploy`, `/setup-deploy`, `/landing-report`, `/canary`, `/document-release`, `/document-generate`, `/retro`
+- **Browser:** `/browse`, `/scrape`, `/skillify`, `/open-gstack-browser`, `/connect-chrome`, `/setup-browser-cookies`, `/pair-agent`, `/make-pdf`
+- **Session and safety:** `/careful`, `/guard`, `/freeze`, `/unfreeze`, `/context-save`, `/context-restore`, `/learn`
+- **Knowledge base:** `/setup-gbrain`, `/sync-gbrain`
+- **iOS (not used in this project):** `/ios-qa`, `/ios-fix`, `/ios-design-review`, `/ios-sync`, `/ios-clean`
+- **Maintenance:** `/gstack-upgrade`
+
+If the gstack skills stop working (or are missing after a fresh clone), run:
+
+```
+cd .claude/skills/gstack && ./setup
+```
