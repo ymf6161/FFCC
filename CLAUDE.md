@@ -1,5 +1,7 @@
 # FFCC — House rules for Claude Code
 
+At the start of every session, if gstack skills like /plan-eng-review aren't available, run `cd .claude/skills/gstack && ./setup` first.
+
 FFCC (Family Financial Control Centre) is a family finance app that keeps the books itself and only asks the family when it isn't sure.
 
 ## Read first, every session
