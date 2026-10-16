@@ -3,11 +3,18 @@
  * on these; the seed uses them so its rows satisfy the same unique index.
  */
 
-/** Lower case, letters and digits only, single spaces. */
+/**
+ * Lower case, letters and digits only (in any script), single spaces.
+ * Keeps Hebrew and accented letters: "Café" stays "café", not "caf".
+ * Combining marks are dropped after NFC, so Hebrew vowel points don't split
+ * words and "שָׁלוֹם" matches "שלום"; precomposed letters like é survive NFC.
+ */
 export function normaliseDescription(raw: string): string {
   return raw
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
+    .normalize("NFC")
+    .toLocaleLowerCase("en-GB")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 }
 

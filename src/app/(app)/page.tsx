@@ -3,7 +3,8 @@ import { EmptyState } from "@/components/empty-state";
 import { Notice } from "@/components/notice";
 import { PageHeader } from "@/components/page-header";
 import { getDb } from "@/db";
-import { countOpenQuestions, countTransactions, getHousehold, isSortingPaused, listAccounts } from "@/db/queries";
+import { countTransactions, getHousehold, isSortingPaused, listAccounts } from "@/db/queries";
+import { getOpenQuestionCount } from "./data";
 
 export const metadata = { title: "Home" };
 
@@ -14,7 +15,7 @@ export default async function HomePage() {
     getHousehold(db, householdId),
     listAccounts(db, householdId),
     countTransactions(db, householdId),
-    countOpenQuestions(db, householdId),
+    getOpenQuestionCount(householdId),
     isSortingPaused(db, householdId),
   ]);
 
@@ -29,7 +30,7 @@ export default async function HomePage() {
           </Notice>
         ) : null}
 
-        {openQuestions === 0 ? (
+        {openQuestions === 0 && !paused ? (
           <section className="rounded-lg bg-card p-5 lg:p-6">
             <p className="type-subheading">All caught up. Nothing needs you today.</p>
           </section>

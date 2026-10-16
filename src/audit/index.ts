@@ -99,6 +99,10 @@ export async function insertBatchAudited<T extends HouseholdTable>(
   rows: InferInsertModel<T>[],
   ctx: AuditContext & { importBatchId: string; householdId: string },
 ): Promise<number> {
+  const stray = rows.find((row) => (row as { householdId?: unknown }).householdId !== ctx.householdId);
+  if (stray) {
+    throw new Error(`Every row in a ${getTableName(table)} batch must belong to household ${ctx.householdId}`);
+  }
   return atomically(ex, async (tx) => {
     for (let i = 0; i < rows.length; i += INSERT_CHUNK) {
       await tx.insert(table).values(rows.slice(i, i + INSERT_CHUNK) as never);
@@ -126,6 +130,10 @@ export async function updateAudited<T extends AuditableTable>(
   patch: Partial<InferInsertModel<T>>,
   ctx: AuditContext,
 ): Promise<InferSelectModel<T>> {
+  // A row's identity and owner never change through an update.
+  for (const field of ["id", "householdId"]) {
+    if (field in patch) throw new Error(`${getTableName(table)}.${field} cannot be changed by an update`);
+  }
   return atomically(ex, async (tx) => {
     const where = scopedWhere(table, key);
     const [before] = (await tx.select().from(table as SQLiteTable).where(where)) as InferSelectModel<T>[];

@@ -18,6 +18,7 @@ export type Job = typeof jobs.$inferSelect;
 export const STALE_LOCK_MS = 15 * 60 * 1000;
 /** Home shows "sorting paused" when the oldest due job has waited this long. */
 export const PAUSED_AFTER_MS = 10 * 60 * 1000;
+export const WORKER_STOPPED = "The worker stopped while running this job.";
 
 export async function enqueue(
   ex: Executor,
@@ -53,7 +54,7 @@ export async function enqueue(
 export async function claimNext(ex: Executor, now: Date = new Date()): Promise<Job | null> {
   const nowText = now.toISOString();
   const staleBefore = new Date(now.getTime() - STALE_LOCK_MS).toISOString();
-  for (let tries = 0; tries < 5; tries++) {
+  for (let tries = 0; tries < 10; tries++) {
     const [candidate] = await ex
       .select()
       .from(jobs)
@@ -68,10 +69,21 @@ export async function claimNext(ex: Executor, now: Date = new Date()): Promise<J
     if (!candidate) return null;
     const lockCondition =
       candidate.lockedAt === null ? isNull(jobs.lockedAt) : eq(jobs.lockedAt, candidate.lockedAt);
+    const unchanged = and(eq(jobs.id, candidate.id), eq(jobs.status, candidate.status), lockCondition);
+
+    // A job whose worker died on every attempt would otherwise take each new worker down with it.
+    if (candidate.status === "running" && candidate.attempts >= candidate.maxAttempts) {
+      await ex
+        .update(jobs)
+        .set({ status: "failed", lockedAt: null, lastError: WORKER_STOPPED, updatedAt: nowText })
+        .where(unchanged);
+      continue;
+    }
+
     const [claimed] = await ex
       .update(jobs)
       .set({ status: "running", lockedAt: nowText, attempts: candidate.attempts + 1, updatedAt: nowText })
-      .where(and(eq(jobs.id, candidate.id), eq(jobs.status, candidate.status), lockCondition))
+      .where(unchanged)
       .returning();
     if (claimed) return claimed;
     // Someone else claimed it first; look again.
@@ -107,15 +119,24 @@ export async function fail(ex: Executor, job: Job, error: unknown, now: Date = n
 }
 
 /**
- * True when this household's oldest due job has been waiting more than
- * 10 minutes, which means the worker is stopped or stuck (BUILD_PLAN R29).
+ * True when this household has a job that has waited more than 10 minutes to
+ * start, or one that has been "running" for more than 10 minutes: either way
+ * the worker is stopped or stuck (BUILD_PLAN R29).
  */
 export async function isSortingPaused(ex: Executor, householdId: string, now: Date = new Date()): Promise<boolean> {
   const threshold = new Date(now.getTime() - PAUSED_AFTER_MS).toISOString();
   const [row] = await ex
     .select({ id: jobs.id })
     .from(jobs)
-    .where(and(eq(jobs.householdId, householdId), eq(jobs.status, "pending"), lte(jobs.runAfter, threshold)))
+    .where(
+      and(
+        eq(jobs.householdId, householdId),
+        or(
+          and(eq(jobs.status, "pending"), lte(jobs.runAfter, threshold)),
+          and(eq(jobs.status, "running"), lte(jobs.lockedAt, threshold)),
+        ),
+      ),
+    )
     .limit(1);
   return row !== undefined;
 }

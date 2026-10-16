@@ -28,32 +28,47 @@ function formatAbs(absPence: number, wholePounds: boolean): string {
   return `${poundsText}.${String(pence).padStart(2, "0")}`;
 }
 
+/**
+ * The sign shown before an amount. One rule for every size, so a hero figure
+ * and a list row never disagree:
+ * money in "+", money out "−" (unless zero), transfers none,
+ * balances "−" only when negative.
+ */
+export function moneySign(pence: number, kind: MoneyKind): "+" | typeof MINUS | "" {
+  assertInteger(pence, "pence");
+  switch (kind) {
+    case "in":
+      return "+";
+    case "out":
+      return pence === 0 ? "" : MINUS;
+    case "transfer":
+      return "";
+    case "balance":
+      return pence < 0 ? MINUS : "";
+  }
+}
+
 export type FormatOptions = { kind?: MoneyKind; wholePounds?: boolean };
 
 /** The only function that turns pence into £ text. */
 export function formatMoney(pence: number, { kind = "balance", wholePounds = false }: FormatOptions = {}): string {
   assertInteger(pence, "pence");
-  const abs = formatAbs(Math.abs(pence), wholePounds);
-  switch (kind) {
-    case "in":
-      return `+${abs}`;
-    case "out":
-      return pence === 0 ? abs : `${MINUS}${abs}`;
-    case "transfer":
-      return abs;
-    case "balance":
-      return pence < 0 ? `${MINUS}${abs}` : abs;
-  }
+  return `${moneySign(pence, kind)}${formatAbs(Math.abs(pence), wholePounds)}`;
 }
 
-/** Splits a figure for hero display: pounds part and the two-digit pence. */
-export function splitHero(pence: number): { pounds: string; pence: string; negative: boolean } {
+/**
+ * Parts of a hero figure: the sign, the pounds, and the two-digit pence
+ * (shown smaller). Uses the same sign rule as `formatMoney`.
+ */
+export function formatHeroParts(
+  pence: number,
+  kind: MoneyKind = "balance",
+): { sign: ReturnType<typeof moneySign>; pounds: string; pence: string } {
   assertInteger(pence, "pence");
   const abs = Math.abs(pence);
   return {
+    sign: moneySign(pence, kind),
     pounds: gbpWhole.format(Math.trunc(abs / 100)),
     pence: String(abs % 100).padStart(2, "0"),
-    negative: pence < 0,
   };
 }
-

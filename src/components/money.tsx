@@ -1,4 +1,4 @@
-import { formatMoney, type MoneyKind, splitHero } from "@/money";
+import { formatHeroParts, formatMoney, type MoneyKind } from "@/money";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -25,10 +25,10 @@ export function Money({ pence, kind = "balance", size = "row", onField = false, 
           : undefined;
 
   if (size === "hero") {
-    const { pounds, pence: p, negative } = splitHero(pence);
+    const { sign, pounds, pence: p } = formatHeroParts(pence, kind);
     return (
       <span className={cn("type-figure-hero tabular-nums", colour, className)}>
-        {negative ? "−" : ""}
+        {sign}
         {pounds}
         <sup className="ml-0.5 align-top text-[45%] opacity-70">.{p}</sup>
       </span>

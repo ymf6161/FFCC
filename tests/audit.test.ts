@@ -133,6 +133,45 @@ describe("audit helper", () => {
     expect(entries[0]).toMatchObject({ entity: "transactions", importBatchId: batchId, after: { rowCount: 450 } });
   });
 
+  it("refuses a batch containing a row for another household, writing nothing", async () => {
+    const a = await makeHousehold("A");
+    const b = await makeHousehold("B");
+    const accountA = await makeAccount(a.id);
+    const accountB = await makeAccount(b.id);
+    const now = nowIso();
+    const batchId = newId();
+    const row = (householdId: string, accountId: string, n: number) => ({
+      id: newId(), householdId, accountId, date: "2026-04-01", amount: -n, rawDescription: "SHOP",
+      source: "csv" as const, dedupeKey: `2026-04-01|${-n}|shop`, createdAt: now, updatedAt: now,
+    });
+    const auditBefore = (await db.select().from(auditLog)).length;
+    await expect(
+      insertBatchAudited(db, transactions, [row(a.id, accountA.id, 1), row(b.id, accountB.id, 2)], {
+        actor: system, reason: "Imported", importBatchId: batchId, householdId: a.id,
+      }),
+    ).rejects.toThrow(/must belong to household/);
+    expect(await db.select().from(transactions).where(eq(transactions.householdId, b.id))).toHaveLength(0);
+    expect(await db.select().from(transactions).where(eq(transactions.householdId, a.id))).toHaveLength(0);
+    expect(await entriesFor(batchId)).toHaveLength(0);
+    expect((await db.select().from(auditLog)).length).toBe(auditBefore);
+  });
+
+  it("refuses an update that would move a row to another household or change its id", async () => {
+    const a = await makeHousehold("A");
+    const b = await makeHousehold("B");
+    const account = await makeAccount(a.id);
+    const auditBefore = (await entriesFor(account.id)).length;
+    await expect(
+      updateAudited(db, accounts, { id: account.id, householdId: a.id }, { name: "Moved", householdId: b.id }, { actor: system, reason: "x" }),
+    ).rejects.toThrow(/householdId cannot be changed/);
+    await expect(
+      updateAudited(db, accounts, { id: account.id, householdId: a.id }, { id: newId() }, { actor: system, reason: "x" }),
+    ).rejects.toThrow(/id cannot be changed/);
+    const [row] = await db.select().from(accounts).where(eq(accounts.id, account.id));
+    expect(row).toMatchObject({ householdId: a.id, name: "Current" });
+    expect(await entriesFor(account.id)).toHaveLength(auditBefore);
+  });
+
   it("offers no way to change or remove audit entries", () => {
     expect(Object.keys(auditModule).sort()).toEqual(["insertAudited", "insertBatchAudited", "softDeleteAudited", "updateAudited"]);
     // Nothing in the app updates or deletes audit rows.

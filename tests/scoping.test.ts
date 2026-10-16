@@ -66,10 +66,20 @@ describe("household scoping", () => {
     expect(await queries.isSortingPaused(db, b)).toBe(false);
   });
 
+  it("getMembership finds a user only in their own household", async () => {
+    const membersA = await db.select().from((await import("@/db/schema")).householdMembers);
+    const userA = membersA.find((m) => m.householdId === a)!.userId;
+    const userB = membersA.find((m) => m.householdId === b)!.userId;
+    expect(await queries.getMembership(db, a, userA)).toMatchObject({ householdId: a, userId: userA, role: "owner" });
+    expect(await queries.getMembership(db, a, userB)).toBeNull();
+    expect(await queries.getMembership(db, b, userA)).toBeNull();
+    expect(await queries.getMembership(db, "gone", userA)).toBeNull();
+  });
+
   it("covers every exported query", () => {
     // If a query is added to src/db/queries, add a scoping check above too.
     expect(Object.keys(queries).sort()).toEqual(
-      ["countOpenQuestions", "countTransactions", "getHousehold", "isSortingPaused", "listAccounts"].sort(),
+      ["countOpenQuestions", "countTransactions", "getHousehold", "getMembership", "isSortingPaused", "listAccounts"].sort(),
     );
   });
 });

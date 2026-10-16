@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Db } from "@/db";
 import { households, jobs } from "@/db/schema";
-import { backoffMs, claimNext, enqueue, isSortingPaused, PAUSED_AFTER_MS } from "@/jobs/queue";
+import { backoffMs, claimNext, enqueue, isSortingPaused, PAUSED_AFTER_MS, STALE_LOCK_MS, WORKER_STOPPED } from "@/jobs/queue";
 import { runOnce } from "@/jobs/runner";
 import { newId } from "@/lib/ids";
 import { nowIso } from "@/lib/time";
@@ -91,6 +91,36 @@ describe("job queue", () => {
     expect(reclaimed?.attempts).toBe(2);
   });
 
+  it("stops retrying a job that keeps killing its worker once it reaches max attempts", async () => {
+    await drain();
+    const job = await enqueue(db, { type: "noop", maxAttempts: 3 });
+    let now = Date.now();
+    // Each claim is followed by the worker dying: the lock goes stale and the job is taken back.
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const claimed = await claimNext(db, new Date(now));
+      expect(claimed?.id).toBe(job.id);
+      expect(claimed?.attempts).toBe(attempt);
+      now += STALE_LOCK_MS + 1000;
+    }
+    // Attempts are used up: the stale job is marked failed instead of being claimed a fourth time.
+    expect(await claimNext(db, new Date(now))).toBeNull();
+    const [row] = await db.select().from(jobs).where(eq(jobs.id, job.id));
+    expect(row).toMatchObject({ status: "failed", attempts: 3, lastError: WORKER_STOPPED, lockedAt: null });
+    expect(await claimNext(db, new Date(now + 10 * STALE_LOCK_MS))).toBeNull();
+  });
+
+  it("still claims other due jobs after failing a dead one", async () => {
+    await drain();
+    const dead = await enqueue(db, { type: "noop", maxAttempts: 1 });
+    await claimNext(db); // attempt 1 of 1, then the worker dies
+    const next = await enqueue(db, { type: "noop" });
+    const later = new Date(Date.now() + STALE_LOCK_MS + 1000);
+    const claimed = await claimNext(db, later);
+    expect(claimed?.id).toBe(next.id);
+    const [row] = await db.select().from(jobs).where(eq(jobs.id, dead.id));
+    expect(row?.status).toBe("failed");
+  });
+
   it("grows the backoff and caps it at an hour", () => {
     expect(backoffMs(1)).toBe(30_000);
     expect(backoffMs(2)).toBe(60_000);
@@ -110,6 +140,17 @@ describe("isSortingPaused", () => {
 
     await enqueue(db, { type: "noop", householdId, runAfter: new Date(now.getTime() - PAUSED_AFTER_MS - 1000) });
     expect(await isSortingPaused(db, householdId, now)).toBe(true);
+  });
+
+  it("is true when a job has been left running by a worker that stopped", async () => {
+    const householdId = await freshHousehold();
+    await drain();
+    const job = await enqueue(db, { type: "noop", householdId });
+    const claimedAt = new Date();
+    await claimNext(db, claimedAt); // the worker claims it, then stops
+    expect(await isSortingPaused(db, householdId, claimedAt)).toBe(false);
+    expect(await isSortingPaused(db, householdId, new Date(claimedAt.getTime() + PAUSED_AFTER_MS + 1000))).toBe(true);
+    expect(job).toBeDefined();
   });
 
   it("only looks at the given household's jobs", async () => {

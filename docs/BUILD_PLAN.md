@@ -231,6 +231,11 @@ Every confirmation creates a rule.
 - **Dev login:** `/login` has one button, "Continue as the demo household". It sets an HMAC-signed, httpOnly cookie with the user and household ids (30 days). Enabled when `NODE_ENV` is not production or `FFCC_DEV_LOGIN=1`. Production refuses to start a session without `SESSION_SECRET`. `src/proxy.ts` (Next 16's middleware) sends anyone without a valid session to `/login`.
 - **Money helpers ahead of Phase 3:** `formatMoney`, `applyRate` (the one rounding helper: half away from zero, integer maths) and `parseAmountToPence` exist with tests, so later phases share them.
 - **Screen check:** `bun run check:screens` proves the Phase 1 "done when" for screens at 320, 375 and 1280px.
+- **Description normalisation for dedupe** (`src/import/dedupe.ts`, after /code-review): NFC, lower case, combining marks removed, then anything that is not a Unicode letter or digit becomes a space. Hebrew and accented letters are kept ("café", "צדקה"); Hebrew with and without vowel points match. English results are unchanged.
+- **Stuck jobs:** a job whose worker dies on every attempt is marked `failed` ("The worker stopped while running this job.") once it reaches max attempts, instead of being reclaimed forever. "Sorting is paused" also shows when a job has been `running` for over 10 minutes.
+- **Sessions are checked against the database:** a signed cookie is only accepted while its user is still a member of its household; otherwise the person is sent to `/login?expired=1`. Public paths (`/login`, `/login/…`, `/icon.svg`, `/favicon.ico`) are matched by whole segment in `src/auth/public-paths.ts`.
+- **Audit helper guards:** a batch insert refuses rows for any other household, and an update may not change a row's `id` or `householdId`.
+- **Money signs:** `moneySign` is the one sign rule; `formatMoney` and hero figures both use it, so `+` (in) and `−` (out) show at every size.
 
 ## 9. Build phases
 

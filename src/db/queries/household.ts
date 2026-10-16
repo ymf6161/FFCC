@@ -1,6 +1,6 @@
 import { and, count, eq, isNull, ne } from "drizzle-orm";
 import type { Executor } from "@/db";
-import { accounts, households, questions, transactions } from "@/db/schema";
+import { accounts, householdMembers, households, questions, transactions } from "@/db/schema";
 
 /**
  * Household-scoped reads. Every function takes `householdId` first and
@@ -9,6 +9,17 @@ import { accounts, households, questions, transactions } from "@/db/schema";
 
 export async function getHousehold(ex: Executor, householdId: string) {
   const [row] = await ex.select().from(households).where(eq(households.id, householdId)).limit(1);
+  return row ?? null;
+}
+
+/** The user's membership of this household, or null if either has gone. */
+export async function getMembership(ex: Executor, householdId: string, userId: string) {
+  const [row] = await ex
+    .select({ householdId: householdMembers.householdId, userId: householdMembers.userId, role: householdMembers.role })
+    .from(householdMembers)
+    .innerJoin(households, eq(households.id, householdMembers.householdId))
+    .where(and(eq(householdMembers.householdId, householdId), eq(householdMembers.userId, userId)))
+    .limit(1);
   return row ?? null;
 }
 

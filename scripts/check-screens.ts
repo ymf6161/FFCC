@@ -11,6 +11,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
+import { SESSION_COOKIE, signSession } from "@/auth/token";
 
 const PORT = Number(process.env.CHECK_PORT ?? 3100);
 const BASE = `http://localhost:${PORT}`;
@@ -53,8 +54,9 @@ if (!existsSync(".next/BUILD_ID") || process.argv.includes("--build")) {
   if (build.status !== 0) process.exit(build.status ?? 1);
 }
 
+const secret = randomBytes(32).toString("hex");
 const server = spawn("bunx", ["next", "start", "-p", String(PORT)], {
-  env: { ...process.env, FFCC_DEV_LOGIN: "1", SESSION_SECRET: randomBytes(32).toString("hex") },
+  env: { ...process.env, FFCC_DEV_LOGIN: "1", SESSION_SECRET: secret },
   stdio: ["ignore", "pipe", "pipe"],
 });
 server.stderr.on("data", (d) => process.stderr.write(d));
@@ -83,6 +85,21 @@ try {
     await page.goto(`${BASE}/activity`);
     check(new URL(page.url()).pathname === "/login", `signed-out visit redirects to /login`);
     if (vp.screenshot) await page.screenshot({ path: `screenshots/login-${vp.name}.png`, fullPage: true });
+
+    // A path that only starts with "login" still needs a session.
+    await page.goto(`${BASE}/login-history`);
+    check(new URL(page.url()).pathname === "/login", `signed-out visit to /login-history redirects to /login`);
+
+    // A correctly signed cookie for a household that no longer exists (e.g. after `bun run setup`).
+    const stale = await signSession({ userId: "01GONEUSER000000000000000", householdId: "01GONEHOUSEHOLD0000000000" }, secret);
+    await context.addCookies([{ name: SESSION_COOKIE, value: stale, url: BASE }]);
+    await page.goto(`${BASE}/`);
+    const staleUrl = new URL(page.url());
+    check(
+      staleUrl.pathname === "/login" && staleUrl.searchParams.get("expired") === "1",
+      `a cookie for a household that no longer exists goes to /login`,
+    );
+    check(await page.getByText("Your sign-in has expired").isVisible(), `the expired sign-in message shows`);
 
     await page.getByRole("button", { name: "Continue as the demo household" }).click();
     await page.waitForURL(`${BASE}/`);
