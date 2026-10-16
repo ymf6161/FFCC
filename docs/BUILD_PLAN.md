@@ -221,6 +221,36 @@ Every confirmation creates a rule.
 
 ---
 
+### Phase 1 decisions (16 Oct 2026, while building Phase 1)
+
+- **SQLite driver:** `@libsql/client` with `drizzle-orm/libsql`. One driver for the Next server, the worker, scripts and tests; prebuilt binaries from npm (no native build on a new machine); async like Postgres. Busy timeout (5s) set on every pooled connection through the client's `timeout` option; WAL set once on the file. Transactions use `BEGIN IMMEDIATE`, so concurrent writers wait instead of failing.
+- **Seed stored raw:** the seed writes transactions as a bank import would leave them: booked, uncategorised, `unconfirmed`, no transfer or refund links. Sorting them is Phase 3. The generator (`src/seed/generate.ts`) keeps each row's intended category, transfer partner and refund target in memory for Phase 3's tests; they are never stored.
+- **Seed transactions use import batches:** one `import_batches` row per account (`seed-<account>.csv`), audited once per batch, as a real import will be.
+- **`jobs.household_id` is nullable** for global jobs (e.g. a scheduler tick); household jobs always carry it. Job state changes are plumbing and are not audit-logged; the work a job does is audited by the code it calls.
+- **Audit helper API** (`src/audit`): `insertAudited`, `insertBatchAudited`, `updateAudited` (household-scoped), `softDeleteAudited`. Each writes the change and its entry in one transaction. Nothing updates or deletes `audit_log`; a test checks this.
+- **Dev login:** `/login` has one button, "Continue as the demo household". It sets an HMAC-signed, httpOnly cookie with the user and household ids (30 days). Enabled when `NODE_ENV` is not production or `FFCC_DEV_LOGIN=1`. Production refuses to start a session without `SESSION_SECRET`. `src/proxy.ts` (Next 16's middleware) sends anyone without a valid session to `/login`.
+- **Money helpers ahead of Phase 3:** `formatMoney`, `applyRate` (the one rounding helper: half away from zero, integer maths) and `parseAmountToPence` exist with tests, so later phases share them.
+- **Screen check:** `bun run check:screens` proves the Phase 1 "done when" for screens at 320, 375 and 1280px.
+- **Description normalisation for dedupe** (`src/import/dedupe.ts`, after /code-review): NFC, lower case, combining marks removed, then anything that is not a Unicode letter or digit becomes a space. Hebrew and accented letters are kept ("café", "צדקה"); Hebrew with and without vowel points match. English results are unchanged.
+- **Stuck jobs:** a job whose worker dies on every attempt is marked `failed` ("The worker stopped while running this job.") once it reaches max attempts, instead of being reclaimed forever. "Sorting is paused" also shows when a job has been `running` for over 10 minutes.
+- **Sessions are checked against the database:** a signed cookie is only accepted while its user is still a member of its household; otherwise the person is sent to `/login?expired=1`. Public paths (`/login`, `/login/…`, `/icon.svg`, `/favicon.ico`) are matched by whole segment in `src/auth/public-paths.ts`.
+- **Audit helper guards:** a batch insert refuses rows for any other household, and an update may not change a row's `id` or `householdId`.
+- **Money signs:** `moneySign` is the one sign rule; `formatMoney` and hero figures both use it, so `+` (in) and `−` (out) show at every size.
+
+### Phase 2 decisions (16 Oct 2026, while building Phase 2)
+
+- **Pipeline** (`src/import/`): `csv.ts` (RFC 4180 parser) → `detect.ts` (header row, layout signature, saved profile → built-in preset → guess) → `normalise.ts` (Zod-validated rows in date order; unreadable rows reported with row number and reason) → `dedupe.ts` `classifyRows` → `pipeline.ts` (`prepareImport` dry run, `runImport` in one transaction) → `undo.ts` → `drift.ts`. Nothing downstream knows the rows came from a CSV.
+- **Dates and amounts**: dd/mm/yyyy, dd/mm/yy, yyyy-mm-dd, dd-mm-yyyy, "2 Jan 2026", "2 Jan 26"; impossible dates rejected. Amounts parsed from text to pence (`£`, commas, signs, brackets). Newest-first files are put into date order before occurrence numbers and balances are worked out. Files are read as UTF-8, falling back to Windows-1252.
+- **Near duplicate** (rule 10): same account and amount, date within 3 days, different normalised description, and the existing row came from a different source (not `csv`) or a different file layout (bank profile header signature). Stored, with an open "duplicate?" question (options "Keep both" / "It’s the same payment"). Same-layout near matches are ordinary separate payments.
+- **Dedupe index is partial** (`WHERE deleted_at IS NULL`, migration 0001), so rows soft-deleted by an undo never block re-importing the same file. Checkpoints have the same partial unique index on (account, date, source); bank profiles are unique per (household, header signature).
+- **Balances**: the end-of-day balance (last row of each day in date order) becomes a `csv_running_balance` checkpoint, once per day. An account with no transactions takes its opening balance from the first reported balance, dated the day before the file starts. Difference = our balance − the bank’s at the latest checkpoint; "since" is the first differing checkpoint after the last matching one. Shown on Settings → Accounts and on each import.
+- **Presets** (`src/import/presets.ts`): Barclays-, Nationwide-, Monzo- and Amex-style layouts, modelled on how those banks describe their exports, not verified against real files. A preset is matched on its exact column names; plain `Date,Description,Amount` files are deliberately not matched to a preset and are guessed from the data instead (a column with no negative values suggests a card statement). The family always sees and can change the mapping.
+- **Wizard state lives in the browser**: the file text and mapping are held by the client component and sent to Zod-validated server actions (`analyseUpload`, `previewImportAction`, `confirmImportAction`), capped at 5 MB. A new account can be created in step 1; it is created in the same transaction as the import.
+- **Jobs**: an import queues `categorise_batch`; an undo queues `ledger_rebuild`. Both handlers are no-ops until Phase 3.
+- **Undo audit**: the batch’s own rows are changed with `updateBatchAudited` (one entry listing the ids); each changed row outside the batch (surviving transfer side, unlinked refund, released receipt) gets its own entry.
+- **Early read-only Activity list**: date, account, description, amount; newest first, 50 at a time, filter by import. Search, filters, detail and editing stay in Phase 4.
+- **Sample files**: `fixtures/csv/` (generated by `bun run fixtures` from `tests/fixtures/csv-sources.ts`; a test checks they match).
+
 ## 9. Build phases
 
 Each phase ends with tests passing, /review, /qa (for anything with a screen), /design-review (for screens) and /ship. Acceptance checks are what "done" means.
@@ -240,6 +270,7 @@ Each phase ends with tests passing, /review, /qa (for anything with a screen), /
 - App shell with the five navigation areas (empty states), dev login.
 - Audit log helper used by every write.
 - Done when: `bun run setup` builds the DB and seed on any machine; all five areas load on phone and desktop widths.
+- Status: **built 16 Oct 2026** (decisions above).
 
 **Phase 2 — CSV import**
 - Import wizard: upload, column mapping, preview first 20 rows, sign convention, confirm.
@@ -248,6 +279,7 @@ Each phase ends with tests passing, /review, /qa (for anything with a screen), /
 - Running-balance column mapped to balance checkpoints; drift shown per account.
 - Import batch summary and undo (always available, with cleanup per section 5).
 - Done when: importing the same file twice adds nothing; two identical same-day rows both import once; three different bank formats import correctly; undo after confirmations leaves no orphaned receipts, pairs or ledger entries.
+- Status: **built 16 Oct 2026** (decisions above).
 
 **Phase 3 — Engine**
 - Merchant normalisation and shared merchant table.
