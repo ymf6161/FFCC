@@ -36,6 +36,10 @@ Open http://localhost:3000 and choose **Continue as the demo household**. The de
 
 `bun run engine:report` runs the engine on a temporary database (the seed, then the sample CSVs) and prints what it did: rows sorted automatically, questions, transfer pairs, refunds and ma’aser owed.
 
+## Activity
+
+Search by name or bank description, filter by account, category, status, dates, tag, event or person, and open any payment. On a payment you can change its category (and say "Yes, always" to make a rule for that shop), split it across categories, add tags, events, people and a note, and see its full history. Tick several rows to tag them together. **Questions waiting** lists what FFCC isn't sure about.
+
 ## Scripts
 
 | Script | What it does |

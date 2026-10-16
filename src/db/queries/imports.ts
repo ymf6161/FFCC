@@ -1,55 +1,9 @@
-import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import type { Executor } from "@/db";
-import { accounts, bankProfiles, categories, importBatches, transactions } from "@/db/schema";
+import { accounts, bankProfiles, importBatches } from "@/db/schema";
 import { bankProfileMappingSchema } from "@/import/mapping";
 
-/** Household-scoped reads for imports and the Activity list. */
-
-export async function listTransactions(
-  ex: Executor,
-  householdId: string,
-  { batchId, limit = 50, offset = 0 }: { batchId?: string; limit?: number; offset?: number } = {},
-) {
-  const where = and(
-    eq(transactions.householdId, householdId),
-    isNull(transactions.deletedAt),
-    batchId ? eq(transactions.importBatchId, batchId) : undefined,
-  );
-  const rows = await ex
-    .select({
-      id: transactions.id,
-      date: transactions.date,
-      amount: transactions.amount,
-      description: transactions.rawDescription,
-      accountName: accounts.name,
-      bookingStatus: transactions.bookingStatus,
-      status: transactions.status,
-      categoryName: categories.name,
-      categoryKind: categories.kind,
-      transferGroupId: transactions.transferGroupId,
-      refundOfId: transactions.refundOfId,
-    })
-    .from(transactions)
-    .innerJoin(accounts, eq(accounts.id, transactions.accountId))
-    .leftJoin(categories, and(eq(categories.id, transactions.categoryId), eq(categories.householdId, householdId)))
-    .where(where)
-    .orderBy(desc(transactions.date), desc(transactions.id))
-    .limit(limit)
-    .offset(offset);
-  const [total] = await ex.select({ n: count() }).from(transactions).where(where);
-  // Which of these purchases have a refund linked to them.
-  const refunded = rows.length
-    ? new Set(
-        (
-          await ex
-            .select({ id: transactions.refundOfId })
-            .from(transactions)
-            .where(and(eq(transactions.householdId, householdId), isNull(transactions.deletedAt), inArray(transactions.refundOfId, rows.map((r) => r.id))))
-        ).map((r) => r.id),
-      )
-    : new Set<string | null>();
-  return { rows: rows.map((r) => ({ ...r, refunded: refunded.has(r.id) })), total: total?.n ?? 0 };
-}
+/** Household-scoped reads for imports. */
 
 export async function listImportBatches(ex: Executor, householdId: string) {
   return ex

@@ -266,6 +266,15 @@ Every confirmation creates a rule.
 - **Sample CSVs** now link up (a card payment, a monthly transfer between two of the accounts, and a purchase with a partial refund) so cross-file transfers and refunds can be tested. `bun run engine:report` prints what the engine did on the seed and the sample files.
 - **Activity list** shows category and status (Auto, Confirmed, Not sure), and marks transfers (Transfer / Card repayment / Cash withdrawal, muted amount with no sign, "Unpaired" if alone), refunds ("Refund") and refunded purchases ("Refunded").
 
+### Phase 4 decisions (16 Oct 2026, while building Phase 4)
+
+- **Search** is case-insensitive `lower(column) LIKE ?` over the bank description, merchant and notes, with `%`, `_` and `\` escaped, so it works the same on SQLite and Postgres and with Hebrew. Filters (account, category or "Not sorted yet", status, date range, tag, event, person) are plain GET parameters, so a filtered view can be bookmarked.
+- **Correction → rule.** Changing a category marks the row confirmed (confidence 100); its unconfirmed refunds follow it. The page then offers "Always file X as Y?". Yes creates a household rule (`conditions.merchant` = the merchant key, origin `correction`, priority 100), turns off older rules for the same merchant that file it elsewhere, records a confirmed household merchant mapping, answers open questions about that merchant, and runs the engine straight away so other unconfirmed payments follow. Confirmed rows are never changed by the rule.
+- **Tags, events and people** are created only by name typed by the family (found case-insensitively, else created), never suggested; the engine never adds them. Bulk tagging adds to the selected rows and skips rows that already have it.
+- **Link tables** (tags, events, people on a transaction) are written with `linkAudited` / `unlinkAudited`, audited under the transaction's id so they show in its history.
+- **History** on a transaction shows every audit entry for it (including the import batch entry), who did it (You / FFCC) and what changed (category and status).
+- **Questions inbox** (`/activity/questions`) lists open questions in plain words with context; answering them arrives in Phase 10.
+
 ## 9. Build phases
 
 Each phase ends with tests passing, /review, /qa (for anything with a screen), /design-review (for screens) and /ship. Acceptance checks are what "done" means.
@@ -312,6 +321,7 @@ Each phase ends with tests passing, /review, /qa (for anything with a screen), /
 - List, search, filters, transaction detail, edit category, splits, tags, events, people, audit history, bulk tag, unconfirmed flag.
 - Correction → "always do this?" → rule.
 - Done when: a user can find any transaction, fix it, and see the rule it created.
+- Status: **built 16 Oct 2026** (decisions above).
 
 **Phase 5 — Home**
 - Available cash, net worth, month vs last month, ma'aser owed, reserves, goals, open questions, setup checklist.

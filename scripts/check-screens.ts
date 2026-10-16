@@ -34,6 +34,7 @@ const AREAS = [
   { path: "/settings", heading: "Settings", nav: "Settings" },
   { path: "/settings/import", heading: "Import a bank statement", nav: "Settings" },
   { path: "/settings/imports", heading: "Past imports", nav: "Settings" },
+  { path: "/activity/questions", heading: "Questions", nav: "Activity" },
 ] as const;
 const FIXTURE = "fixtures/csv/nationwide-style-joint-2026-01-to-03.csv";
 const VIEWPORTS = [
@@ -138,6 +139,48 @@ async function desktopImportScreens(page: Page) {
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByText(/rows in the file/).waitFor();
   await shot(page, "import-step3-desktop");
+}
+
+async function activityRunThrough(page: Page, vpName: string) {
+  console.log(`\nactivity run-through (${vpName})`);
+  // Each width fixes a different merchant, since the first run changes the data.
+  const merchant = vpName === "desktop" ? "TALKSTAR MOBILE" : "LINKWAVE BROADBAND";
+  const search = merchant.split(" ")[0]!.toLowerCase();
+  // Find a payment by searching.
+  await page.goto(`${BASE}/activity`);
+  await page.getByLabel("Search", { exact: true }).fill(search);
+  await page.getByRole("button", { name: "Search" }).click();
+  await page.waitForURL(new RegExp(`q=${search}`));
+  check(await page.getByText(/transactions? match/).isVisible(), "search shows how many match");
+  await page.getByRole("link", { name: new RegExp(merchant) }).filter({ visible: true }).first().click();
+  await page.waitForURL(/\/activity\/[A-Z0-9]+$/);
+  check(await page.getByRole("heading", { level: 1, name: merchant }).isVisible(), "the transaction page opens");
+  check(await page.getByRole("heading", { name: "History" }).isVisible(), "the transaction page shows its history");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  check(overflow <= 0, `transaction page: no sideways scrolling (overflow ${overflow}px)`);
+  await shot(page, `transaction-${vpName}`);
+
+  // Fix its category, then make it a rule.
+  await page.getByLabel("Category", { exact: true }).selectOption({ label: "Subscriptions" });
+  await page.getByRole("button", { name: "Save category" }).click();
+  await page.getByText(`Always file ${merchant} as Subscriptions?`).waitFor();
+  check(true, "a correction offers “Always do this?”");
+  await page.getByRole("button", { name: "Yes, always" }).click();
+  await page.getByText(new RegExp(`Saved\\. We’ll file ${merchant} as Subscriptions from now on\\.`)).waitFor();
+  check(true, "the rule is created");
+  await page.reload();
+  check(await page.getByText(`Always file ${merchant} as Subscriptions`).isVisible(), "the rule shows on the payment");
+  await shot(page, `transaction-rule-${vpName}`);
+
+  // Tag two rows at once.
+  await page.goto(`${BASE}/activity?q=${vpName === "desktop" ? "freshways" : "kosher"}`);
+  const boxes = page.getByRole("checkbox", { name: vpName === "desktop" ? /^Select FRESHWAYS/ : /^Select KOSHER/ }).filter({ visible: true });
+  await boxes.nth(0).check();
+  await boxes.nth(1).check();
+  await page.getByLabel("Name of the tag").fill("פסח");
+  await page.getByRole("button", { name: "Add to 2" }).click();
+  await page.getByText("Added “פסח” to 2 transactions.").waitFor();
+  check(true, "two rows tagged at once (Hebrew tag)");
 }
 
 if (!existsSync(".next/BUILD_ID") || process.argv.includes("--build")) {
@@ -252,6 +295,7 @@ try {
 
     if (vp.name === "phone") await importRunThrough(page, vp.name);
     if (vp.name === "desktop") await desktopImportScreens(page);
+    if (vp.name === "desktop" || vp.name === "phone") await activityRunThrough(page, vp.name);
     await context.close();
   }
   await browser.close();

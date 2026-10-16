@@ -212,3 +212,54 @@ function scopedWhere(table: AuditableTable, key: { id: string; householdId: stri
   if (key.householdId === null) throw new Error(`${getTableName(table)} writes must be scoped to a household`);
   return and(byId, eq(householdCol, key.householdId));
 }
+
+type LinkTable = SQLiteTable & { householdId: SQLiteColumn; transactionId: SQLiteColumn };
+
+/**
+ * Adds a link row (a transaction's tag, event or person) and audits it.
+ * Link tables have no id of their own; the entry is filed under the transaction.
+ * Adding a link that already exists does nothing.
+ */
+export async function linkAudited<T extends LinkTable>(
+  ex: Executor,
+  table: T,
+  values: InferInsertModel<T> & { householdId: string; transactionId: string },
+  ctx: AuditContext,
+): Promise<boolean> {
+  return atomically(ex, async (tx) => {
+    const inserted = await tx.insert(table).values(values as never).onConflictDoNothing().returning();
+    if (inserted.length === 0) return false;
+    await appendEntry(tx, {
+      householdId: values.householdId,
+      entity: getTableName(table),
+      entityId: values.transactionId,
+      before: null,
+      after: values,
+      ctx,
+    });
+    return true;
+  });
+}
+
+/** Removes a link row (never a financial row) and audits what was removed. */
+export async function unlinkAudited<T extends LinkTable>(
+  ex: Executor,
+  table: T,
+  key: { householdId: string; transactionId: string; column: SQLiteColumn; value: string },
+  ctx: AuditContext,
+): Promise<boolean> {
+  return atomically(ex, async (tx) => {
+    const where = and(eq(table.householdId, key.householdId), eq(table.transactionId, key.transactionId), eq(key.column, key.value));
+    const removed = await tx.delete(table).where(where).returning();
+    if (removed.length === 0) return false;
+    await appendEntry(tx, {
+      householdId: key.householdId,
+      entity: getTableName(table),
+      entityId: key.transactionId,
+      before: removed[0],
+      after: null,
+      ctx,
+    });
+    return true;
+  });
+}

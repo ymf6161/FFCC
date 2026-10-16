@@ -110,6 +110,17 @@ describe("household scoping", () => {
     expect(await queries.listBankProfiles(db, b)).toEqual([]);
   });
 
+  it("Activity reads (detail, categories, details, questions) are scoped", async () => {
+    const rowsA = (await queries.listTransactions(db, a, { limit: 1 })).rows;
+    expect(await queries.getTransactionDetail(db, b, rowsA[0]!.id)).toBeNull();
+    expect((await queries.getTransactionDetail(db, a, rowsA[0]!.id))?.tx.householdId).toBe(a);
+    expect((await queries.listCategories(db, a)).every((c) => c.householdId === a)).toBe(true);
+    const det = await queries.listTagsEventsPersons(db, b);
+    expect([...det.tags, ...det.events, ...det.persons].every((x) => x.householdId === b)).toBe(true);
+    expect((await queries.listOpenQuestions(db, b)).questions).toHaveLength(0);
+    expect((await queries.listOpenQuestions(db, a)).questions.every((q) => q.householdId === a)).toBe(true);
+  });
+
   it("covers every exported query", () => {
     // If a query is added to src/db/queries, add a scoping check above too.
     expect(Object.keys(queries).sort()).toEqual(
@@ -119,10 +130,14 @@ describe("household scoping", () => {
         "getHousehold",
         "getImportBatch",
         "getMembership",
+        "getTransactionDetail",
         "isSortingPaused",
         "listAccounts",
         "listBankProfiles",
+        "listCategories",
         "listImportBatches",
+        "listOpenQuestions",
+        "listTagsEventsPersons",
         "listTransactions",
       ].sort(),
     );
